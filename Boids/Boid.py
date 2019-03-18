@@ -21,9 +21,7 @@ class Boid:
         self.y = y
         self.direction = random.uniform(1, 2 * math.pi + 1) % (2 * math.pi)
 
-    def update(self, boids):
-
-        self.move_towards(boids)
+    def update(self):
 
         self.x += Boid.speed * math.cos(self.direction)
         self.y += Boid.speed * math.sin(self.direction)
@@ -32,6 +30,41 @@ class Boid:
                            (0, 0, 0),
                            (round(self.x), round(self.y)),
                            4)
+
+    def calculate_new_direction(self, boids):
+
+        try:
+            delta_x = math.cos(self.direction)
+            delta_y = math.sin(self.direction)
+
+            # noinspection PyUnusedLocal
+            vectors = [(0, 0)
+                       for i in range(4)]
+
+            # TODO: Fix the bottom-right drift
+            #   Seems like boids don't average between one another correctly
+            vectors[0] = (delta_x, delta_y)           # Vector of current trajectory
+            vectors[1] = self.move_towards(boids)     # Vector towards nearby boids
+            vectors[2] = self.move_away(boids)        # Vector away from boids too close
+
+            x = vectors[0][0] + vectors[1][0] + vectors[2][0] + vectors[3][0]
+            y = vectors[0][1] + vectors[1][1] + vectors[2][1] + vectors[3][1]
+
+            new_vector = (x / len(vectors),
+                          y / len(vectors))
+
+            self.direction = math.atan(new_vector[1] / new_vector[0])
+        except ArithmeticError:
+            print("An error has occurred in vector calculations")
+            sys.exit(-1)
+
+
+    def distance_to(self, boid):
+
+        x_sq = (self.x - boid.x) ** 2
+        y_sq = (self.y - boid.y) ** 2
+
+        return math.sqrt(x_sq + y_sq)
 
     def move_towards(self, boids):
 
@@ -45,7 +78,7 @@ class Boid:
 
         # Get center-point of close boids
         if len(close_boids) == 0:
-            return
+            return 0, 0
         # elif len(close_boids) == 1:
         #     center_point = [close_boids[0].x,
         #                     close_boids[0].y]
@@ -53,35 +86,44 @@ class Boid:
             center_point = [sum(boid.x for boid in close_boids),
                             sum(boid.y for boid in close_boids)]
 
-        # Get boid movement
-        m, b, facing_right = self.get_movement()
+        # Get unit vector from bird to center_point
+        vector = (center_point[0] - self.x,
+                  center_point[1] - self.y)
 
-        point_is_below = False
+        # Return unit vector
+        return Boid.get_unit_vector(vector)
 
-        if center_point[1] > (m * center_point[0] + b):
-            point_is_below = True
+    def move_away(self, boids):
 
-        if ((facing_right and point_is_below) or
-                (not facing_right and not point_is_below)):
-            self.direction += Boid.turn_angle
+        # Get close boids
+        close_boids = []
+        for boid in boids:
+            if boid == self:
+                continue
+            if self.distance_to(boid) < Boid.min_distance:
+                close_boids.append(boid)
+
+        # Get center-point of close boids
+        if len(close_boids) == 0:
+            return 0, 0
+        # elif len(close_boids) == 1:
+        #     center_point = [close_boids[0].x,
+        #                     close_boids[0].y]
         else:
-            self.direction -= Boid.turn_angle
+            center_point = [sum(boid.x for boid in close_boids),
+                            sum(boid.y for boid in close_boids)]
 
-    def distance_to(self, boid):
+        # Get unit vector from bird to center_point
+        vector = (self.x - center_point[0],
+                  self.y - center_point[1])
 
-        x_sq = (self.x - boid.x) ** 2
-        y_sq = (self.y - boid.y) ** 2
+        # Return unit vector
+        return Boid.get_unit_vector(vector)
 
-        return math.sqrt(x_sq + y_sq)
+    @staticmethod
+    def get_unit_vector(vector):
 
-    def get_movement(self):
-
-        delta_x = self.x + math.cos(self.direction)  # * 100
-        delta_y = self.y + math.sin(self.direction)  # * 100
-        # solve the line equation, y = mx + b, of the direction of travel
-        m = (delta_y - self.y) / (delta_x - self.x)
-        b = delta_y - m * delta_x
-
-        facing_right = ((self.direction - math.pi / 2) % (2 * math.pi)) > math.pi
-
-        return m, b, facing_right
+        vector_magnitude = math.sqrt(vector[0] ** 2 + vector[1] ** 2)
+        unit_vector = (vector[0] / vector_magnitude,
+                       vector[1] / vector_magnitude)
+        return unit_vector

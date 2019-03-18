@@ -1,4 +1,5 @@
 import pygame
+import random
 import sys
 from Boid import Boid
 
@@ -12,11 +13,9 @@ class World:
 
         self.clock = pygame.time.Clock()
 
-        self.boids = [Boid(300, 300),
-                      Boid(600, 600),
-                      Boid(300, 600),
-                      Boid(600, 300)
-                      ]
+        # noinspection PyUnusedLocal
+        self.boids = [Boid(random.randrange(900), random.randrange(900))
+                      for i in range(20)]
 
     def run(self):
 
@@ -30,7 +29,9 @@ class World:
             World.screen.fill((225, 225, 225))  # Off-white
 
             for boid in self.boids:
-                boid.update(self.boids)
+                boid.calculate_new_direction(self.boids)
+            for boid in self.boids:
+                boid.update()
             pygame.display.flip()
             self.clock.tick(60)  # 60 ticks/second
 
