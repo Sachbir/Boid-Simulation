@@ -20,11 +20,18 @@ class Boid:
         self.x = x
         self.y = y
         self.direction = random.uniform(1, 2 * math.pi + 1) % (2 * math.pi)
+        # TODO: Test vector-based angles in place of present angle-based system
+        #   Already written, just need to test
+        # self.dir_vector = (random.uniform(1, -1), random.uniform(1, -1))
+        # self.dir_vector = Boid.get_unit_vector(self.dir_vector)
 
     def update(self):
 
         self.x += Boid.speed * math.cos(self.direction)
         self.y += Boid.speed * math.sin(self.direction)
+
+        # self.x += self.dir_vector[0]    # * .5  # factor if necessary
+        # self.y += self.dir_vector[1]    # * .5  # factor if necessary
 
         pygame.draw.circle(Boid.screen,
                            (0, 0, 0),
@@ -43,21 +50,24 @@ class Boid:
 
             # TODO: Fix the bottom-right drift
             #   Seems like boids don't average between one another correctly
-            vectors[0] = (delta_x, delta_y)           # Vector of current trajectory
+            vectors[0] = (round(delta_x), round(delta_y))           # Vector of current trajectory
+            # vectors[0] = self.dir_vector
             vectors[1] = self.move_towards(boids)     # Vector towards nearby boids
             vectors[2] = self.move_away(boids)        # Vector away from boids too close
+            vectors[3] = self.move_in_avg_direction(boids)
 
             x = vectors[0][0] + vectors[1][0] + vectors[2][0] + vectors[3][0]
             y = vectors[0][1] + vectors[1][1] + vectors[2][1] + vectors[3][1]
 
             new_vector = (x / len(vectors),
                           y / len(vectors))
+            # self.dir_vector = (x / len(vectors),
+            #                    y / len(vectors))
 
             self.direction = math.atan(new_vector[1] / new_vector[0])
         except ArithmeticError:
             print("An error has occurred in vector calculations")
             sys.exit(-1)
-
 
     def distance_to(self, boid):
 
@@ -119,6 +129,25 @@ class Boid:
 
         # Return unit vector
         return Boid.get_unit_vector(vector)
+
+    def move_in_avg_direction(self, boids):
+
+        # Get close boids
+        close_boids = []
+        for boid in boids:
+            if boid == self:
+                continue
+            if self.distance_to(boid) < Boid.min_distance:
+                close_boids.append(boid)
+
+        all_directions = []
+        for boid in boids:
+            all_directions.append(boid.dir_vector)
+
+        avg_direction = (sum(boid.dir_vector[0] for boid in close_boids),
+                         sum(boid.dir_vector[1] for boid in close_boids))
+
+        return avg_direction
 
     @staticmethod
     def get_unit_vector(vector):
