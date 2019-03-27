@@ -40,34 +40,30 @@ class Boid:
 
     def calculate_new_direction(self, boids):
 
-        try:
-            delta_x = math.cos(self.direction)
-            delta_y = math.sin(self.direction)
+        delta_x = math.cos(self.direction)
+        delta_y = math.sin(self.direction)
 
-            # noinspection PyUnusedLocal
-            vectors = [(0, 0)
-                       for i in range(4)]
+        # noinspection PyUnusedLocal
+        vectors = [(0, 0)
+                   for i in range(4)]
 
-            # TODO: Fix the bottom-right drift
-            #   Seems like boids don't average between one another correctly
-            vectors[0] = (round(delta_x), round(delta_y))           # Vector of current trajectory
-            # vectors[0] = self.dir_vector
-            vectors[1] = self.move_towards(boids)     # Vector towards nearby boids
-            vectors[2] = self.move_away(boids)        # Vector away from boids too close
-            vectors[3] = self.move_in_avg_direction(boids)
+        # TODO: Fix the bottom-right drift
+        #   Seems like boids don't average between one another correctly
+        vectors[0] = (delta_x, delta_y)           # Vector of current trajectory
+        # vectors[0] = self.dir_vector
+        vectors[1] = self.move_towards(boids)     # Vector towards nearby boids
+        vectors[2] = self.move_away(boids)        # Vector away from boids too close
+        # vectors[3] = self.move_in_avg_direction(boids)
 
-            x = vectors[0][0] + vectors[1][0] + vectors[2][0] + vectors[3][0]
-            y = vectors[0][1] + vectors[1][1] + vectors[2][1] + vectors[3][1]
+        x = vectors[0][0] + vectors[1][0] + vectors[2][0] + vectors[3][0]
+        y = vectors[0][1] + vectors[1][1] + vectors[2][1] + vectors[3][1]
 
-            new_vector = (x / len(vectors),
-                          y / len(vectors))
-            # self.dir_vector = (x / len(vectors),
-            #                    y / len(vectors))
+        new_vector = (x / len(vectors),
+                      y / len(vectors))
+        # self.dir_vector = (x / len(vectors),
+        #                    y / len(vectors))
 
-            self.direction = math.atan(new_vector[1] / new_vector[0])
-        except ArithmeticError:
-            print("An error has occurred in vector calculations")
-            sys.exit(-1)
+        self.direction = math.atan(new_vector[1] / new_vector[0])
 
     def distance_to(self, boid):
 

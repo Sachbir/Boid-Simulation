@@ -14,8 +14,10 @@ class World:
         self.clock = pygame.time.Clock()
 
         # noinspection PyUnusedLocal
-        self.boids = [Boid(random.randrange(900), random.randrange(900))
-                      for i in range(20)]
+        # self.boids = [Boid(random.randrange(900), random.randrange(900))
+        #               for i in range(4)]
+        self.boids = [Boid(450, 450),
+                      Boid(600, 500)]
 
     def run(self):
 
