@@ -1,4 +1,4 @@
-import math
+from math import sqrt, pi
 import random
 import pygame
 from Config import Config
@@ -9,7 +9,7 @@ class Boid:
     view_distance = 100
     min_distance = 25
     speed = 1
-    turn_angle = math.pi / 32
+    turn_angle = pi / 32
 
     screen = None
 
@@ -25,11 +25,8 @@ class Boid:
 
     def update(self):
 
-        # self.x += Boid.speed * math.cos(self.direction)
-        # self.y += Boid.speed * math.sin(self.direction)
-
-        self.x += self.direction[0]    # * .5  # factor if necessary
-        self.y += self.direction[1]    # * .5  # factor if necessary
+        self.x += self.direction[0]
+        self.y += self.direction[1]
 
         pygame.draw.circle(Boid.screen,
                            (0, 0, 0),
@@ -48,8 +45,8 @@ class Boid:
         vectors[2] = self.alignment(boids)
         vectors[3] = self.cohesion(boids)
 
-        x = vectors[0][0] + vectors[1][0] + vectors[2][0] + vectors[3][0]
-        y = vectors[0][1] + vectors[1][1] + vectors[2][1] + vectors[3][1]
+        x = sum(vectors[i][0] for i in range(len(vectors)))
+        y = sum(vectors[i][1] for i in range(len(vectors)))
 
         new_vector = (x / len(vectors),
                       y / len(vectors))
@@ -61,11 +58,11 @@ class Boid:
         x_sq = (self.x - boid.x) ** 2
         y_sq = (self.y - boid.y) ** 2
 
-        return math.sqrt(x_sq + y_sq)
+        return sqrt(x_sq + y_sq)
 
     def separation(self, boids):
 
-        close_boids = self.get_boids_within_range(boids, self.min_distance)
+        close_boids = self.get_boids_within_distance(boids, self.min_distance)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -88,7 +85,7 @@ class Boid:
 
     def alignment(self, boids):
 
-        close_boids = self.get_boids_within_range(boids, self.view_distance)
+        close_boids = self.get_boids_within_distance(boids, self.view_distance)
 
         directions = []
         for boid in close_boids:
@@ -103,7 +100,7 @@ class Boid:
 
     def cohesion(self, boids):
 
-        close_boids = self.get_boids_within_range(boids, self.view_distance)
+        close_boids = self.get_boids_within_distance(boids, self.view_distance)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -124,13 +121,13 @@ class Boid:
 
         return vector_to_center
 
-    def get_boids_within_range(self, boids, range):
+    def get_boids_within_distance(self, boids, distance):
 
         close_boids = []
         for boid in boids:
             if boid == self:
                 continue
-            if self.distance_to(boid) < range:
+            if self.distance_to(boid) < distance:
                 close_boids.append(boid)
 
         return close_boids
@@ -138,10 +135,11 @@ class Boid:
     @staticmethod
     def get_unit_vector(vector):
 
-        try:
-            vector_magnitude = math.sqrt(vector[0] ** 2 + vector[1] ** 2)
-            unit_vector = (vector[0] / vector_magnitude,
-                           vector[1] / vector_magnitude)
-            return unit_vector
-        except ZeroDivisionError:
+        vector_magnitude = sqrt(vector[0] ** 2 + vector[1] ** 2)
+
+        if vector_magnitude == 0:
             return 0, 0
+
+        unit_vector = (vector[0] / vector_magnitude,
+                       vector[1] / vector_magnitude)
+        return unit_vector
