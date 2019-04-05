@@ -1,7 +1,6 @@
 import math
 import random
 import pygame
-import sys
 
 
 class Boid:
@@ -43,9 +42,9 @@ class Boid:
                    for i in range(4)]
 
         vectors[0] = self.direction
-        # vectors[1] = self.move_towards(boids)     # Vector towards nearby boids
-        # vectors[2] = self.move_away(boids)        # Vector away from boids too close
-        vectors[3] = self.alignment(boids)
+        vectors[1] = self.separation(boids)
+        vectors[2] = self.alignment(boids)
+        vectors[3] = self.cohesion(boids)
 
         x = vectors[0][0] + vectors[1][0] + vectors[2][0] + vectors[3][0]
         y = vectors[0][1] + vectors[1][1] + vectors[2][1] + vectors[3][1]
@@ -118,8 +117,28 @@ class Boid:
 
     # Redoing code below
 
-    def separation(self):
-        print("separation")
+    def separation(self, boids):
+
+        close_boids = self.get_boids_within_range(boids, self.min_distance)
+
+        if len(close_boids) == 0:
+            return 0, 0
+
+        avg_x = 0
+        avg_y = 0
+
+        for boid in close_boids:
+            avg_x += boid.x
+            avg_y += boid.y
+
+        avg_x /= len(close_boids)
+        avg_y /= len(close_boids)
+
+        vector_from_center = (self.x - avg_x,
+                              self.y - avg_y)
+        vector_from_center = Boid.get_unit_vector(vector_from_center)
+
+        return vector_from_center
 
     def alignment(self, boids):
 
@@ -136,8 +155,28 @@ class Boid:
 
         return average_direction
 
-    def cohesion(self):
-        print("cohesion")
+    def cohesion(self, boids):
+
+        close_boids = self.get_boids_within_range(boids, self.view_distance)
+
+        if len(close_boids) == 0:
+            return 0, 0
+
+        avg_x = 0
+        avg_y = 0
+
+        for boid in close_boids:
+            avg_x += boid.x
+            avg_y += boid.y
+
+        avg_x /= len(close_boids)
+        avg_y /= len(close_boids)
+
+        vector_to_center = (avg_x - self.x,
+                            avg_y - self.y)
+        vector_to_center = Boid.get_unit_vector(vector_to_center)
+
+        return vector_to_center
 
     def get_boids_within_range(self, boids, range):
 
