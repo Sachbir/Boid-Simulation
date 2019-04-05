@@ -2,6 +2,7 @@ import config
 import pygame
 import sys
 from Boid import Boid
+from Species import Species
 
 
 class World:
@@ -17,7 +18,13 @@ class World:
         # noinspection PyUnusedLocal
         self.boids = []
         for i in range(config.num_boids):
-            self.boids.append(Boid())
+            self.boids.append(Boid(Species.Cardinal))
+        for i in range(config.num_boids):
+            self.boids.append(Boid(Species.Bluebird))
+        for i in range(config.num_boids):
+            self.boids.append(Boid(Species.Raven))
+        for i in range(config.num_boids):
+            self.boids.append(Boid(Species.Sparrow))
 
     def run(self):
 
@@ -31,14 +38,6 @@ class World:
                 boid.calculate_new_direction(self.boids)
             for boid in self.boids:
                 boid.update()
-                if boid.x > config.world_size[0]:
-                    boid.x = 0
-                elif boid.x < 0:
-                    boid.x = config.world_size[0]
-                if boid.y > config.world_size[1]:
-                    boid.y = 0
-                elif boid.y < 0:
-                    boid.y = config.world_size[1]
 
             pygame.display.flip()
             self.clock.tick(config.FPS)
@@ -55,8 +54,16 @@ class World:
                 if event.key == pygame.K_DOWN and len(self.boids) > 0:
                     self.boids.pop(-1)
                 if event.key == pygame.K_r:
-                    self.boids = [Boid()
-                                  for i in range(config.num_boids)]
+                    # noinspection PyUnusedLocal
+                    self.boids = []
+                    for i in range(config.num_boids):
+                        self.boids.append(Boid(Species.Cardinal))
+                    for i in range(config.num_boids):
+                        self.boids.append(Boid(Species.Bluebird))
+                    for i in range(config.num_boids):
+                        self.boids.append(Boid(Species.Raven))
+                    for i in range(config.num_boids):
+                        self.boids.append(Boid(Species.Sparrow))
 
 
 world = World()

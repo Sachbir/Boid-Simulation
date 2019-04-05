@@ -3,6 +3,7 @@ from enum import Enum
 
 class Species(Enum):
 
-    Raven = (0, 0, 0)
-    Bluebird = (0, 0, 255)
-    Cardinal = (255, 0, 0)
+    Raven = (17, 17, 17)
+    Bluebird = (36, 75, 108)
+    Cardinal = (196, 30, 58)
+    Sparrow = (132, 125, 111)

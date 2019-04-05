@@ -33,6 +33,9 @@ class Boid:
         self.x += self.direction[0]
         self.y += self.direction[1]
 
+        self.x %= config.world_size[0]
+        self.y %= config.world_size[1]
+
         # Keep this for demos until triangle turning is complete
         pygame.draw.circle(Boid.screen,
                            self.species,
