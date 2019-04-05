@@ -21,6 +21,8 @@ class World:
 
     def run(self):
 
+        fps = 600
+
         while True:
 
             for event in pygame.event.get():
@@ -35,7 +37,7 @@ class World:
             for boid in self.boids:
                 boid.update()
             pygame.display.flip()
-            self.clock.tick(60)  # 60 ticks/second
+            self.clock.tick(fps)  # 60 ticks/second
 
 
 world = World()
