@@ -1,4 +1,7 @@
 TODO:
-    - convert alignment model from instant to gradual (ie. turning)
     - have multiple flocks that interact
+        - they are currently replused by other flocks, but not sufficiently so
     - avoid obstacles
+    - give boids a proper shape (triangles)
+    - prevent overlap
+    - predators? 

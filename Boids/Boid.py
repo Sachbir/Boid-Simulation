@@ -1,7 +1,10 @@
-from math import sqrt, pi
-import random
+# Note: Species-specific code is included, but the implementation needs work
+
+import config
 import pygame
-from Config import Config
+import random
+from math import sqrt, pi
+from Species import Species
 
 
 class Boid:
@@ -13,12 +16,14 @@ class Boid:
 
     screen = None
 
-    def __init__(self):
+    def __init__(self, species=Species.Raven):
+
+        self.species = species.value
 
         Boid.screen = pygame.display.get_surface()
 
-        self.x = random.randrange(Config.world_size[0])
-        self.y = random.randrange(Config.world_size[1])
+        self.x = random.randrange(config.world_size[0])
+        self.y = random.randrange(config.world_size[1])
 
         self.direction = (random.uniform(1, -1), random.uniform(1, -1))
         self.direction = Boid.get_unit_vector(self.direction)
@@ -28,10 +33,25 @@ class Boid:
         self.x += self.direction[0]
         self.y += self.direction[1]
 
+        # Keep this for demos until triangle turning is complete
         pygame.draw.circle(Boid.screen,
-                           (0, 0, 0),
+                           self.species,
                            (round(self.x), round(self.y)),
                            4)
+
+        # size = 10
+
+        # Terribly ugly
+        # front_coord = [round(self.x + self.direction[0]) * size,
+        #                round(self.y + self.direction[1]) * size]
+        # back_left_coord = [round(self.x - self.direction[0] * cos(3 * pi / 4)) * size,
+        #                    round(self.y - self.direction[1] * sin(3 * pi / 4)) * size]
+        # back_right_coord = [round(self.x - self.direction[0] * cos(5 * pi / 4)) * size,
+        #                     round(self.y - self.direction[1] * sin(5 * pi / 4)) * size]
+        #
+        # pygame.draw.polygon(Boid.screen,
+        #                     (0, 0, 0),
+        #                     [front_coord, back_left_coord, back_right_coord])
 
     def calculate_new_direction(self, boids):
 
@@ -41,17 +61,24 @@ class Boid:
 
         vectors[0] = self.direction
         vectors[1] = self.separation(boids)
-        vectors[1] = 2 * vectors[1][0], 2 * vectors[1][1]       # Separation takes precedence
+        vectors[1] = 5 * vectors[1][0], 5 * vectors[1][1]       # Separation takes precedence
         vectors[2] = self.alignment(boids)
         vectors[3] = self.cohesion(boids)
 
         x = sum(vectors[i][0] for i in range(len(vectors)))
         y = sum(vectors[i][1] for i in range(len(vectors)))
 
-        new_vector = (x / len(vectors),
-                      y / len(vectors))
+        target_direction = (x / len(vectors),
+                            y / len(vectors))
 
-        self.direction = Boid.get_unit_vector(new_vector)
+        target_direction = Boid.get_unit_vector(target_direction)
+        target_direction = (target_direction[0] / config.turn_factor,
+                            target_direction[1] / config.turn_factor)
+
+        new_direction = (target_direction[0] + self.direction[0],
+                         target_direction[1] + self.direction[1])
+
+        self.direction = Boid.get_unit_vector(new_direction)
 
     def distance_to(self, boid):
 
@@ -85,7 +112,7 @@ class Boid:
 
     def alignment(self, boids):
 
-        close_boids = self.get_boids_within_distance(boids, self.view_distance)
+        close_boids = self.get_boids_within_distance(boids, self.view_distance, True)
 
         directions = []
         for boid in close_boids:
@@ -100,7 +127,7 @@ class Boid:
 
     def cohesion(self, boids):
 
-        close_boids = self.get_boids_within_distance(boids, self.view_distance)
+        close_boids = self.get_boids_within_distance(boids, self.view_distance, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -121,12 +148,15 @@ class Boid:
 
         return vector_to_center
 
-    def get_boids_within_distance(self, boids, distance):
+    def get_boids_within_distance(self, boids, distance, should_consider_species=False):
 
         close_boids = []
         for boid in boids:
             if boid == self:
                 continue
+            if should_consider_species:
+                if self.species != boid.species:
+                    continue
             if self.distance_to(boid) < distance:
                 close_boids.append(boid)
 

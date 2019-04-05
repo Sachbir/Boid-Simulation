@@ -1,4 +1,4 @@
-from Config import Config
+import config
 import pygame
 import sys
 from Boid import Boid
@@ -7,16 +7,17 @@ from Boid import Boid
 class World:
 
     pygame.init()
-    pygame.key.set_repeat()
-    screen = pygame.display.set_mode(Config.world_size)
+    pygame.key.set_repeat(200, 100)
+    screen = pygame.display.set_mode(config.world_size)
 
     def __init__(self):
 
         self.clock = pygame.time.Clock()
 
         # noinspection PyUnusedLocal
-        self.boids = [Boid()
-                      for i in range(Config.num_boids)]
+        self.boids = []
+        for i in range(config.num_boids):
+            self.boids.append(Boid())
 
     def run(self):
 
@@ -30,17 +31,17 @@ class World:
                 boid.calculate_new_direction(self.boids)
             for boid in self.boids:
                 boid.update()
-                if boid.x > Config.world_size[0]:
+                if boid.x > config.world_size[0]:
                     boid.x = 0
                 elif boid.x < 0:
-                    boid.x = Config.world_size[0]
-                if boid.y > Config.world_size[1]:
+                    boid.x = config.world_size[0]
+                if boid.y > config.world_size[1]:
                     boid.y = 0
                 elif boid.y < 0:
-                    boid.y = Config.world_size[1]
+                    boid.y = config.world_size[1]
 
             pygame.display.flip()
-            self.clock.tick(Config.FPS)
+            self.clock.tick(config.FPS)
 
     def process_events(self):
 
@@ -53,6 +54,9 @@ class World:
                     self.boids.append(Boid())
                 if event.key == pygame.K_DOWN and len(self.boids) > 0:
                     self.boids.pop(-1)
+                if event.key == pygame.K_r:
+                    self.boids = [Boid()
+                                  for i in range(config.num_boids)]
 
 
 world = World()
