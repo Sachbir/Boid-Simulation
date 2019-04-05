@@ -1,2 +1,4 @@
 TODO:
     - convert alignment model from instant to gradual (ie. turning)
+    - have multiple flocks that interact
+    - avoid obstacles

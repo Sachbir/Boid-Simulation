@@ -1,6 +1,7 @@
 import math
 import random
 import pygame
+from Config import Config
 
 
 class Boid:
@@ -12,12 +13,12 @@ class Boid:
 
     screen = None
 
-    def __init__(self, x, y):
+    def __init__(self):
 
         Boid.screen = pygame.display.get_surface()
 
-        self.x = x
-        self.y = y
+        self.x = random.randrange(Config.world_size[0])
+        self.y = random.randrange(Config.world_size[1])
 
         self.direction = (random.uniform(1, -1), random.uniform(1, -1))
         self.direction = Boid.get_unit_vector(self.direction)
@@ -43,6 +44,7 @@ class Boid:
 
         vectors[0] = self.direction
         vectors[1] = self.separation(boids)
+        vectors[1] = 2 * vectors[1][0], 2 * vectors[1][1]       # Separation takes precedence
         vectors[2] = self.alignment(boids)
         vectors[3] = self.cohesion(boids)
 
@@ -60,62 +62,6 @@ class Boid:
         y_sq = (self.y - boid.y) ** 2
 
         return math.sqrt(x_sq + y_sq)
-
-    def move_towards(self, boids):
-
-        # Get close boids
-        close_boids = []
-        for boid in boids:
-            if boid == self:
-                continue
-            if self.distance_to(boid) < Boid.view_distance:
-                close_boids.append(boid)
-
-        # Get center-point of close boids
-        if len(close_boids) == 0:
-            return 0, 0
-        # elif len(close_boids) == 1:
-        #     center_point = [close_boids[0].x,
-        #                     close_boids[0].y]
-        else:
-            center_point = [sum(boid.x for boid in close_boids),
-                            sum(boid.y for boid in close_boids)]
-
-        # Get unit vector from bird to center_point
-        vector = (center_point[0] - self.x,
-                  center_point[1] - self.y)
-
-        # Return unit vector
-        return Boid.get_unit_vector(vector)
-
-    def move_away(self, boids):
-
-        # Get close boids
-        close_boids = []
-        for boid in boids:
-            if boid == self:
-                continue
-            if self.distance_to(boid) < Boid.min_distance:
-                close_boids.append(boid)
-
-        # Get center-point of close boids
-        if len(close_boids) == 0:
-            return 0, 0
-        # elif len(close_boids) == 1:
-        #     center_point = [close_boids[0].x,
-        #                     close_boids[0].y]
-        else:
-            center_point = [sum(boid.x for boid in close_boids),
-                            sum(boid.y for boid in close_boids)]
-
-        # Get unit vector from bird to center_point
-        vector = (self.x - center_point[0],
-                  self.y - center_point[1])
-
-        # Return unit vector
-        return Boid.get_unit_vector(vector)
-
-    # Redoing code below
 
     def separation(self, boids):
 
