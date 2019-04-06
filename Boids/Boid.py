@@ -9,10 +9,9 @@ from Species import Species
 
 class Boid:
 
-    view_distance = 100
+    view_distance = 200
     min_distance = 25
     speed = 1
-    turn_angle = pi / 32
 
     screen = None
 
@@ -56,15 +55,17 @@ class Boid:
         #                     (0, 0, 0),
         #                     [front_coord, back_left_coord, back_right_coord])
 
-    def calculate_new_direction(self, boids):
+    def calculate_new_direction(self, boids, obstacles):
 
         # noinspection PyUnusedLocal
         vectors = [(0, 0)
                    for i in range(4)]
 
+        avoidance_factor = 100
+
         vectors[0] = self.direction
-        vectors[1] = self.separation(boids)
-        vectors[1] = 5 * vectors[1][0], 5 * vectors[1][1]       # Separation takes precedence
+        vectors[1] = self.separation(boids, obstacles)
+        vectors[1] = avoidance_factor * vectors[1][0], avoidance_factor * vectors[1][1]       # Separation takes precedence
         vectors[2] = self.alignment(boids)
         vectors[3] = self.cohesion(boids)
 
@@ -90,9 +91,10 @@ class Boid:
 
         return sqrt(x_sq + y_sq)
 
-    def separation(self, boids):
+    def separation(self, boids, obstacles):
 
-        close_boids = self.get_boids_within_distance(boids, self.min_distance)
+        close_boids = self.get_objects_within_distance(boids, self.min_distance)
+        close_obstacles = self.get_objects_within_distance(obstacles, self.min_distance)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -104,8 +106,14 @@ class Boid:
             avg_x += boid.x
             avg_y += boid.y
 
-        avg_x /= len(close_boids)
-        avg_y /= len(close_boids)
+        avoidance_factor = 1000
+
+        for obstacle in close_obstacles:
+            avg_x += obstacle.x * avoidance_factor
+            avg_y += obstacle.y * avoidance_factor
+
+        avg_x /= len(close_boids) + len(close_obstacles) * avoidance_factor
+        avg_y /= len(close_boids) + len(close_obstacles) * avoidance_factor
 
         vector_from_center = (self.x - avg_x,
                               self.y - avg_y)
@@ -115,7 +123,7 @@ class Boid:
 
     def alignment(self, boids):
 
-        close_boids = self.get_boids_within_distance(boids, self.view_distance, True)
+        close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
 
         directions = []
         for boid in close_boids:
@@ -130,7 +138,7 @@ class Boid:
 
     def cohesion(self, boids):
 
-        close_boids = self.get_boids_within_distance(boids, self.view_distance, True)
+        close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -151,19 +159,19 @@ class Boid:
 
         return vector_to_center
 
-    def get_boids_within_distance(self, boids, distance, should_consider_species=False):
+    def get_objects_within_distance(self, objects, distance, should_consider_species=False):
 
-        close_boids = []
-        for boid in boids:
-            if boid == self:
+        close_objects = []
+        for obj in objects:
+            if obj == self:
                 continue
             if should_consider_species:
-                if self.species != boid.species:
+                if self.species != obj.species:
                     continue
-            if self.distance_to(boid) < distance:
-                close_boids.append(boid)
+            if self.distance_to(obj) < distance:
+                close_objects.append(obj)
 
-        return close_boids
+        return close_objects
 
     @staticmethod
     def get_unit_vector(vector):

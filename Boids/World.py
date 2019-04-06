@@ -2,6 +2,7 @@ import config
 import pygame
 import sys
 from Boid import Boid
+from Obstacle import Obstacle
 from Species import Species
 
 
@@ -15,18 +16,13 @@ class World:
 
         self.clock = pygame.time.Clock()
 
-        # noinspection PyUnusedLocal
         self.boids = []
-        for i in range(config.num_boids):
-            self.boids.append(Boid(Species.Cardinal))
-        for i in range(config.num_boids):
-            self.boids.append(Boid(Species.Bluebird))
-        for i in range(config.num_boids):
-            self.boids.append(Boid(Species.Raven))
-        for i in range(config.num_boids):
-            self.boids.append(Boid(Species.Sparrow))
+        self.obstacles = []
+        self.obstacles.append(Obstacle(320, 240))
 
     def run(self):
+
+        self.boids = World.spawn_boids()
 
         while True:
 
@@ -35,9 +31,11 @@ class World:
             World.screen.fill((225, 225, 225))  # Off-white
 
             for boid in self.boids:
-                boid.calculate_new_direction(self.boids)
+                boid.calculate_new_direction(self.boids, self.obstacles)
             for boid in self.boids:
                 boid.update()
+            for obstacle in self.obstacles:
+                obstacle.update()
 
             pygame.display.flip()
             self.clock.tick(config.FPS)
@@ -54,16 +52,23 @@ class World:
                 if event.key == pygame.K_DOWN and len(self.boids) > 0:
                     self.boids.pop(-1)
                 if event.key == pygame.K_r:
-                    # noinspection PyUnusedLocal
-                    self.boids = []
-                    for i in range(config.num_boids):
-                        self.boids.append(Boid(Species.Cardinal))
-                    for i in range(config.num_boids):
-                        self.boids.append(Boid(Species.Bluebird))
-                    for i in range(config.num_boids):
-                        self.boids.append(Boid(Species.Raven))
-                    for i in range(config.num_boids):
-                        self.boids.append(Boid(Species.Sparrow))
+                    self.boids = World.spawn_boids()
+
+    @staticmethod
+    def spawn_boids():
+
+        boids = []
+
+        # for i in range(config.boid_cap):
+        #     boids.append(Boid(Species.Cardinal))
+        for i in range(config.boid_cap):
+            boids.append(Boid(Species.Bluebird))
+        # for i in range(config.boid_cap):
+        #     boids.append(Boid(Species.Raven))
+        # for i in range(config.boid_cap):
+        #     boids.append(Boid(Species.Sparrow))
+
+        return boids
 
 
 world = World()
