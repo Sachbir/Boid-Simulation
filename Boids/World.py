@@ -2,7 +2,6 @@ import config
 import pygame
 import sys
 from Boid import Boid
-from Obstacle import Obstacle
 from Species import Species
 
 
@@ -18,7 +17,8 @@ class World:
 
         self.boids = []
         self.obstacles = []
-        self.obstacles.append(Obstacle(320, 240))
+
+        # self.obstacles.append(Obstacle(320, 240))
 
     def run(self):
 
@@ -55,12 +55,12 @@ class World:
                     self.boids = World.spawn_boids()
 
     @staticmethod
-    def spawn_boids():
+    def spawn_boids() -> [Boid]:
 
         boids = []
 
-        # for i in range(config.boid_cap):
-        #     boids.append(Boid(Species.Cardinal))
+        for i in range(config.boid_cap):
+            boids.append(Boid(Species.Cardinal))
         for i in range(config.boid_cap):
             boids.append(Boid(Species.Bluebird))
         # for i in range(config.boid_cap):
