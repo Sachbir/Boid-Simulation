@@ -8,12 +8,16 @@ from Species import Species
 class World:
 
     pygame.init()
+    # set_repeat doesn't want parameters, but requires them on Windows to function
+    # noinspection PyArgumentList
     pygame.key.set_repeat(200, 100)
     screen = pygame.display.set_mode(config.world_size)
 
     def __init__(self):
 
         self.clock = pygame.time.Clock()
+
+        Boid()
 
         self.boids = []
         self.obstacles = []
@@ -55,7 +59,7 @@ class World:
                     self.boids = World.spawn_boids()
 
     @staticmethod
-    def spawn_boids() -> [Boid]:
+    def spawn_boids():
 
         boids = []
 

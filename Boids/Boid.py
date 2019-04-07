@@ -16,7 +16,7 @@ class Boid(Obstacle):
 
     screen = None
 
-    def __init__(self, species: Species = Species.Raven):
+    def __init__(self, species=Species.Raven):
 
         super().__init__(species)
 
@@ -56,12 +56,9 @@ class Boid(Obstacle):
         #                     (0, 0, 0),
         #                     [front_coord, back_left_coord, back_right_coord])
 
-    def calculate_new_direction(self, boids: [Obstacle], obstacles: [Obstacle]) -> None:
+    def calculate_new_direction(self, boids, obstacles):
 
-        vectors = []
-
-        vectors.append(self.direction)
-        vectors.append(self.separation(boids, obstacles))
+        vectors = [self.direction, self.separation(boids, obstacles)]
 
         if vectors[1] == (0, 0):
             vectors.append(self.alignment(boids))
@@ -82,14 +79,14 @@ class Boid(Obstacle):
 
         self.direction = get_unit_vector(new_direction)
 
-    def distance_to(self, boid: Obstacle) -> float:
+    def distance_to(self, boid):
 
         x_sq = (self.x - boid.x) ** 2
         y_sq = (self.y - boid.y) ** 2
 
         return sqrt(x_sq + y_sq)
 
-    def separation(self, boids: [Obstacle], obstacles: [Obstacle]) -> (float, float):
+    def separation(self, boids, obstacles):
 
         close_boids = self.get_objects_within_distance(boids, self.min_distance)
         close_obstacles = self.get_objects_within_distance(obstacles, self.min_distance)
@@ -117,7 +114,7 @@ class Boid(Obstacle):
 
         return vector_from_center
 
-    def alignment(self, boids: [Obstacle]) -> (float, float):
+    def alignment(self, boids):
 
         close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
 
@@ -132,7 +129,7 @@ class Boid(Obstacle):
 
         return average_direction
 
-    def cohesion(self, boids: [Obstacle]) -> (float, float):
+    def cohesion(self, boids):
 
         close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
 
@@ -155,7 +152,7 @@ class Boid(Obstacle):
 
         return vector_to_center
 
-    def get_objects_within_distance(self, objects: [Obstacle], distance: float, should_consider_species: bool = False):
+    def get_objects_within_distance(self, objects, distance, should_consider_species=False):
 
         close_objects = []
         for obj in objects:
@@ -170,7 +167,7 @@ class Boid(Obstacle):
         return close_objects
 
 
-def get_unit_vector(vector: (float, float)) -> (float, float):
+def get_unit_vector(vector):
 
     vector_magnitude = sqrt(vector[0] ** 2 + vector[1] ** 2)
 

@@ -7,7 +7,7 @@ class Obstacle:
     screen = None
     radius = 4
 
-    def __init__(self, species: Species = None):
+    def __init__(self, species=None):
 
         self.x = None
         self.y = None
