@@ -141,7 +141,9 @@ class Boid(Obstacle):
 
         close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
         if len(close_obstacles) == 0:
-            close_obstacles = self.get_objects_within_distance(boids, self.min_distance)
+            close_obstacles = self.get_objects_within_distance(boids, 2 * self.min_distance, True, True)
+        if len(close_obstacles) == 0:
+            close_obstacles = self.get_objects_within_distance(boids, self.min_distance, True)
         if len(close_obstacles) == 0:
             return 0, 0
 
@@ -196,14 +198,19 @@ class Boid(Obstacle):
 
         return vector_to_center
 
-    def get_objects_within_distance(self, objects, distance, should_consider_species=False):
+    def get_objects_within_distance(self, objects, distance, consider_same_species=False, inverse=False):
 
         close_objects = []
         for obj in objects:
             if obj == self:
                 continue
-            if should_consider_species and self.species != obj.species:
-                continue
+            if consider_same_species:
+                if not inverse:
+                    if self.species != obj.species:
+                        continue
+                else:
+                    if self.species == obj.species:
+                        continue
             if self.distance_to(obj) < distance:
                 close_objects.append(obj)
 
