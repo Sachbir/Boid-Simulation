@@ -6,4 +6,6 @@ This is a fun exploration of emergent behaviors from a very simple ruleset, insp
 2. Alignment - aim towards the average direction of local boids
 3. Cohesion - move towards the center of local boids
 
-As this model is now complete, I have plans to add some more complexity to the mix, such as avoiding all objects (not just local boids), as well as interacting with boids of a different flock (species). The intent here is to be able to make the program develop more interesting behaviours, but as with the original model, the goal is for behaviours to *emerge*, not to be *programmed*. 
+As of now, I have completed the basic model, and have started on a few additions. The current model has an improved avoidance system adapted from the separation rules that avoids other objects as well. 
+
+In the future, I plan on adding a predator-prey dynamic before I consider this finished. 

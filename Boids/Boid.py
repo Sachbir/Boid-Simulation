@@ -1,7 +1,6 @@
 # Note: Species-specific code is included, but the implementation needs work
 
 import config
-import pygame
 import random
 from math import sqrt
 from Obstacle import Obstacle
@@ -61,25 +60,14 @@ class Boid(Obstacle):
 
         this_turn_factor = config.turn_factor
 
-        separation = self.separation2_ElectricBoogaloo(boids, game_objects)
+        vectors = [self.direction]
 
-        vectors = [self.direction, separation]
-
-        if vectors[1] == (0, 0):
+        separation = self.separation(boids, game_objects)
+        if separation != (0, 0):    # If there's a separation value, we only care about that
+            vectors.append(separation)
+        else:                       # Otherwise let's focus on being a group
             vectors.append(self.alignment(boids))
             vectors.append(self.cohesion(boids))
-        else:
-            this_turn_factor *= 2
-
-            direction = ((self.direction[0] * 10 + self.x),
-                         (self.direction[1] * 10 + self.y))
-            separation = ((separation[0] * 10 + self.x),
-                          (separation[1] * 10 + self.y))
-
-            pygame.draw.lines(pygame.display.get_surface(),
-                              (0, 0, 0),
-                              False,
-                              (direction, (self.x, self.y), separation))
 
         x = sum(vectors[i][0] for i in range(len(vectors)))
         y = sum(vectors[i][1] for i in range(len(vectors)))
@@ -105,43 +93,11 @@ class Boid(Obstacle):
 
     def separation(self, boids, game_objects):
 
-        close_boids = self.get_objects_within_distance(boids, self.min_distance, True)
-        # for boid in boids:
-        #     if boid.species == self.species:
-        #         obstacles.append(boid)
-        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
-
-        if len(close_boids) == 0:
-            return 0, 0
-
-        avg_x = 0
-        avg_y = 0
-
-        for boid in close_boids:
-            avg_x += boid.x
-            avg_y += boid.y
-
-        for obstacle in close_obstacles:
-            avg_x += obstacle.x
-            avg_y += obstacle.y
-
-        avg_x /= len(close_boids) + len(close_obstacles)
-        avg_y /= len(close_boids) + len(close_obstacles)
-
-        vector_from_center = (self.x - avg_x,
-                              self.y - avg_y)
-        vector_from_center = get_unit_vector(vector_from_center)
-
-        return vector_from_center
-
-    def separation2_ElectricBoogaloo(self, boids, game_objects):
-
         avg_x = 0
         avg_y = 0
 
         close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
-        if len(close_obstacles) == 0:
-            close_obstacles = self.get_objects_within_distance(boids, 2 * self.min_distance, True, True)
+        close_obstacles.extend(self.get_objects_within_distance(boids, 2 * self.min_distance, False))
         if len(close_obstacles) == 0:
             close_obstacles = self.get_objects_within_distance(boids, self.min_distance, True)
         if len(close_obstacles) == 0:
@@ -198,21 +154,23 @@ class Boid(Obstacle):
 
         return vector_to_center
 
-    def get_objects_within_distance(self, objects, distance, consider_same_species=False, inverse=False):
+    '''
+        Get objects around this object
+        If should_get_same_species is None (default), it ignores species entirely
+    '''
+    def get_objects_within_distance(self, objects, distance, should_get_same_species=None):
 
         close_objects = []
         for obj in objects:
             if obj == self:
-                continue
-            if consider_same_species:
-                if not inverse:
-                    if self.species != obj.species:
-                        continue
-                else:
-                    if self.species == obj.species:
-                        continue
+                continue    # Ignore self
+            if should_get_same_species is not None:
+                if should_get_same_species and self.species != obj.species:
+                    continue    # If we want similar species, ignore the dissimilar
+                if not should_get_same_species and self.species == obj.species:
+                    continue    # If we want dissimilar species, ignore the similar
             if self.distance_to(obj) < distance:
-                close_objects.append(obj)
+                close_objects.append(obj)   # For the remainder, if it's close enough, accept it
 
         return close_objects
 
