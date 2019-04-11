@@ -1,6 +1,7 @@
 # Note: Species-specific code is included, but the implementation needs work
 
 import config
+import pygame
 import random
 from math import sqrt
 from Obstacle import Obstacle
@@ -56,13 +57,29 @@ class Boid(Obstacle):
         #                     (0, 0, 0),
         #                     [front_coord, back_left_coord, back_right_coord])
 
-    def calculate_new_direction(self, boids, obstacles):
+    def calculate_new_direction(self, boids, game_objects):
 
-        vectors = [self.direction, self.separation(boids, obstacles)]
+        this_turn_factor = config.turn_factor
+
+        separation = self.separation2_ElectricBoogaloo(boids, game_objects)
+
+        vectors = [self.direction, separation]
 
         if vectors[1] == (0, 0):
             vectors.append(self.alignment(boids))
             vectors.append(self.cohesion(boids))
+        else:
+            this_turn_factor *= 2
+
+            direction = ((self.direction[0] * 10 + self.x),
+                         (self.direction[1] * 10 + self.y))
+            separation = ((separation[0] * 10 + self.x),
+                          (separation[1] * 10 + self.y))
+
+            pygame.draw.lines(pygame.display.get_surface(),
+                              (0, 0, 0),
+                              False,
+                              (direction, (self.x, self.y), separation))
 
         x = sum(vectors[i][0] for i in range(len(vectors)))
         y = sum(vectors[i][1] for i in range(len(vectors)))
@@ -71,8 +88,8 @@ class Boid(Obstacle):
                             y / len(vectors))
 
         target_direction = get_unit_vector(target_direction)
-        target_direction = (target_direction[0] / config.turn_factor,
-                            target_direction[1] / config.turn_factor)
+        target_direction = (target_direction[0] / this_turn_factor,
+                            target_direction[1] / this_turn_factor)
 
         new_direction = (target_direction[0] + self.direction[0],
                          target_direction[1] + self.direction[1])
@@ -86,10 +103,13 @@ class Boid(Obstacle):
 
         return sqrt(x_sq + y_sq)
 
-    def separation(self, boids, obstacles):
+    def separation(self, boids, game_objects):
 
-        close_boids = self.get_objects_within_distance(boids, self.min_distance)
-        close_obstacles = self.get_objects_within_distance(obstacles, self.min_distance)
+        close_boids = self.get_objects_within_distance(boids, self.min_distance, True)
+        # for boid in boids:
+        #     if boid.species == self.species:
+        #         obstacles.append(boid)
+        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -114,6 +134,30 @@ class Boid(Obstacle):
 
         return vector_from_center
 
+    def separation2_ElectricBoogaloo(self, boids, game_objects):
+
+        avg_x = 0
+        avg_y = 0
+
+        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
+        if len(close_obstacles) == 0:
+            close_obstacles = self.get_objects_within_distance(boids, self.min_distance)
+        if len(close_obstacles) == 0:
+            return 0, 0
+
+        for obstacle in close_obstacles:
+            avg_x += obstacle.x
+            avg_y += obstacle.y
+
+        avg_x /= len(close_obstacles)
+        avg_y /= len(close_obstacles)
+
+        vector_from_center = (self.x - avg_x,
+                              self.y - avg_y)
+        vector_from_center = get_unit_vector(vector_from_center)
+
+        return vector_from_center
+
     def alignment(self, boids):
 
         close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
@@ -131,7 +175,7 @@ class Boid(Obstacle):
 
     def cohesion(self, boids):
 
-        close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
+        close_boids = self.get_objects_within_distance(boids, self.view_distance * 2, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -158,9 +202,8 @@ class Boid(Obstacle):
         for obj in objects:
             if obj == self:
                 continue
-            if should_consider_species:
-                if self.species != obj.species:
-                    continue
+            if should_consider_species and self.species != obj.species:
+                continue
             if self.distance_to(obj) < distance:
                 close_objects.append(obj)
 

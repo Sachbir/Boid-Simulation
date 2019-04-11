@@ -1,5 +1,4 @@
 import pygame
-from Species import Species
 
 
 class Obstacle:

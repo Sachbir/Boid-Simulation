@@ -2,6 +2,7 @@ import config
 import pygame
 import sys
 from Boid import Boid
+from GameObject import GameObject
 from Species import Species
 
 
@@ -20,9 +21,12 @@ class World:
         Boid()
 
         self.boids = []
-        self.obstacles = []
+        self.game_objects = []
 
-        # self.obstacles.append(Obstacle(320, 240))
+        self.game_objects.append(GameObject(320, 240))
+        # self.game_objects.append(GameObject(320, 480))
+        # self.game_objects.append(GameObject(960, 240))
+        self.game_objects.append(GameObject(960, 480))
 
     def run(self):
 
@@ -32,17 +36,17 @@ class World:
 
             self.process_events()
 
-            World.screen.fill((225, 225, 225))  # Off-white
+            World.screen.fill((220, 225, 230))  # Off-white
 
             for boid in self.boids:
-                boid.calculate_new_direction(self.boids, self.obstacles)
+                boid.calculate_new_direction(self.boids, self.game_objects)
             for boid in self.boids:
                 boid.update()
-            for obstacle in self.obstacles:
+            for obstacle in self.game_objects:
                 obstacle.update()
 
             pygame.display.flip()
-            self.clock.tick(config.FPS)
+            self.clock.tick(config.UPS)
 
     def process_events(self):
 
@@ -51,6 +55,11 @@ class World:
                     (event.type == pygame.KEYDOWN and event.key == pygame.K_q)):  # End simulation
                 sys.exit(0)
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if config.UPS == 1:
+                        config.UPS = 240
+                    else:
+                        config.UPS = 1
                 if event.key == pygame.K_UP:
                     self.boids.append(Boid())
                 if event.key == pygame.K_DOWN and len(self.boids) > 0:
