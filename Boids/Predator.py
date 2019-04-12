@@ -10,6 +10,7 @@ class Predator(Boid):
     eat_range = 7
     max_speed = 1.3
     radius = 5
+    display_view_range = False
 
     def __init__(self, species=None):
 
@@ -26,11 +27,12 @@ class Predator(Boid):
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
                                          2 * Predator.eat_range, 2 * Predator.eat_range)
 
-        pygame.draw.circle(pygame.display.get_surface(),
-                           (255, 0, 0),
-                           (round(self.x), round(self.y)),
-                           self.view_distance,
-                           1)
+        if Predator.display_view_range:
+            pygame.draw.circle(pygame.display.get_surface(),
+                               (255, 0, 0),
+                               (round(self.x), round(self.y)),
+                               self.view_distance,
+                               1)
 
     def calculate_new_direction(self, boids, game_objects, predators):
 
@@ -91,7 +93,7 @@ class Predator(Boid):
     # Very similar to cohesion (Boid class), except it targets a specific boid
     def hunt(self, boids):
 
-        close_boids = self.get_objects_within_distance(boids, self.view_distance * 3)
+        close_boids = self.get_objects_within_distance(boids, self.view_distance)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -106,6 +108,13 @@ class Predator(Boid):
 
         if closest_boid is None:
             return 0, 0
+
+        if Predator.display_view_range:
+            pygame.draw.line(pygame.display.get_surface(),
+                             (255, 0, 0),
+                             (round(self.x), round(self.y)),
+                             (round(closest_boid.x), round(closest_boid.y)),
+                             1)
 
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
                                          2 * Predator.eat_range, 2 * Predator.eat_range)

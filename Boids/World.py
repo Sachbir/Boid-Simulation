@@ -1,5 +1,6 @@
 import config
 import pygame
+import pygame.freetype
 import sys
 from Boid import Boid
 from GameObject import GameObject
@@ -7,44 +8,44 @@ from Predator import Predator
 from Species import Species
 from time import time
 
+# from GUI import GUI
+import GUI
+
+pygame.init()
+# set_repeat doesn't want parameters, but requires them on Windows to function
+# noinspection PyArgumentList
+pygame.key.set_repeat(200, 100)
+screen = pygame.display.set_mode(config.world_size)
+
 
 # noinspection PyPep8Naming
 class World:
-
-    pygame.init()
-    # set_repeat doesn't want parameters, but requires them on Windows to function
-    # noinspection PyArgumentList
-    pygame.key.set_repeat(200, 100)
-    screen = pygame.display.set_mode(config.world_size)
 
     def __init__(self):
 
         self.clock = pygame.time.Clock()
 
-        Boid()
-
         self.boids = []
-        self.game_objects = []
         self.predators = []
+        self.game_objects = []
 
-        self.boids = World.spawn_boids()
+        self.spawn_boids()
+        self.predators.append(Predator())
 
         for i in range(240, 480, 10):
             self.game_objects.append(GameObject(320, i))
         self.game_objects.append(GameObject(640, 360))
 
-        self.predators.append(Predator())
-
-        self.display_UPS = False
-
     def run(self):
+
+        last_measured_UPS = 0
 
         while True:
             start_time = time()
 
             self.process_events()
 
-            World.screen.fill((220, 225, 230))  # Slightly blue
+            screen.fill((220, 225, 230))  # Slightly blue
 
             for predator in self.predators:
                 predator.calculate_new_direction(self.boids, self.game_objects, self.predators)
@@ -57,18 +58,19 @@ class World:
             for obstacle in self.game_objects:
                 obstacle.update()
 
-            pygame.display.flip()
-            self.clock.tick(config.target_UPS)
-
             end_time = time()
 
             config.measured_UPS += (1 / (end_time - start_time))
             config.frame_counter += 1
             if config.frame_counter == config.num_frames_to_measure:
-                if self.display_UPS:
-                    print("Average UPS: ", round(config.measured_UPS / config.frame_counter))
+                last_measured_UPS = round(config.measured_UPS / config.frame_counter)
                 config.measured_UPS = 0
                 config.frame_counter = 0
+
+            GUI.render(last_measured_UPS)
+
+            pygame.display.flip()
+            self.clock.tick(config.target_UPS)
 
     def process_events(self):
 
@@ -77,39 +79,33 @@ class World:
                     (event.type == pygame.KEYDOWN and event.key == pygame.K_q)):  # End simulation
                 sys.exit(0)
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_SPACE:     # Pause
                     if config.target_UPS == 1:
                         config.target_UPS = 240
                     else:
                         config.target_UPS = 1
-                if event.key == pygame.K_UP:
-                    self.boids.append(Boid())
-                if event.key == pygame.K_DOWN and len(self.boids) > 0:
-                    self.boids.pop(-1)
-                if event.key == pygame.K_r:
-                    self.boids = World.spawn_boids()
-                if event.key == pygame.K_u:
-                    if self.display_UPS:
-                        print("\nStop displaying UPS")
-                    else:
-                        print("\nStart displaying UPS")
-                    self.display_UPS = not self.display_UPS
+                if event.key == pygame.K_r:         # Restart
+                    self.spawn_boids()
+                if event.key == pygame.K_p:         # Display Predator View Range
+                    Predator.display_view_range = not Predator.display_view_range
+                if event.key == pygame.K_s:         # Cycle Species Count
+                    config.num_of_species += 1
+                    # noinspection PyTypeChecker
+                    if config.num_of_species > len(Species):
+                        config.num_of_species = 1
+                    self.spawn_boids()
 
-    @staticmethod
-    def spawn_boids():
+    def spawn_boids(self):
 
-        boids = []
+        self.boids = []
 
-        for i in range(config.boid_cap):
-            boids.append(Boid(Species.Cardinal))
-        for i in range(config.boid_cap):
-            boids.append(Boid(Species.Bluebird))
-        # for i in range(config.boid_cap):
-        #     boids.append(Boid(Species.Raven))
-        # for i in range(config.boid_cap):
-        #     boids.append(Boid(Species.Sparrow))
-
-        return boids
+        species_count = 0
+        for species in Species:
+            for i in range(int(config.boid_cap / config.num_of_species)):
+                self.boids.append(Boid(species))
+            species_count += 1
+            if species_count == config.num_of_species:
+                break
 
 
 world = World()
