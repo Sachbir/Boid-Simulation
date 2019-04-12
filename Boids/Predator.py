@@ -26,10 +26,11 @@ class Predator(Boid):
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
                                          2 * Predator.eat_range, 2 * Predator.eat_range)
 
-        pygame.draw.circle(pygame.Surface,
+        pygame.draw.circle(pygame.display.get_surface(),
                            (255, 0, 0),
-                           (self.x, self.y),
-                           self.view_distance)
+                           (round(self.x), round(self.y)),
+                           self.view_distance,
+                           1)
 
     def calculate_new_direction(self, boids, game_objects, predators):
 
