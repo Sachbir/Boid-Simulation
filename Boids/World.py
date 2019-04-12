@@ -25,8 +25,7 @@ class World:
 
         self.boids = []
         self.game_objects = []
-        self.predator = []
-
+        self.predators = []
 
         self.boids = World.spawn_boids()
 
@@ -34,13 +33,11 @@ class World:
             self.game_objects.append(GameObject(320, i))
         self.game_objects.append(GameObject(640, 360))
 
-        self.predator.append(Predator())
+        self.predators.append(Predator())
 
         self.display_UPS = False
 
     def run(self):
-
-
 
         while True:
             start_time = time()
@@ -49,8 +46,12 @@ class World:
 
             World.screen.fill((220, 225, 230))  # Slightly blue
 
+            for predator in self.predators:
+                predator.calculate_new_direction(self.boids, self.game_objects, self.predators)
+            for predator in self.predators:
+                predator.update()
             for boid in self.boids:
-                boid.calculate_new_direction(self.boids, self.game_objects)
+                boid.calculate_new_direction(self.boids, self.game_objects, self.predators)
             for boid in self.boids:
                 boid.update()
             for obstacle in self.game_objects:
@@ -89,9 +90,9 @@ class World:
                     self.boids = World.spawn_boids()
                 if event.key == pygame.K_u:
                     if self.display_UPS:
-                        print("Stop displaying UPS")
+                        print("\nStop displaying UPS")
                     else:
-                        print("Start displaying UPS")
+                        print("\nStart displaying UPS")
                     self.display_UPS = not self.display_UPS
 
     @staticmethod

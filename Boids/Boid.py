@@ -24,7 +24,9 @@ class Boid(Obstacle):
         self.y = random.randrange(config.world_size[1])
 
         self.direction = (random.uniform(1, -1), random.uniform(1, -1))
-        self.direction = get_unit_vector(self.direction)
+        self.direction = Boid.get_unit_vector(self.direction)
+
+        self.turn_factor = config.turn_factor
 
     def update(self):
 
@@ -56,15 +58,13 @@ class Boid(Obstacle):
         #                     (0, 0, 0),
         #                     [front_coord, back_left_coord, back_right_coord])
 
-    def calculate_new_direction(self, boids, game_objects):
-
-        this_turn_factor = config.turn_factor
+    def calculate_new_direction(self, boids, game_objects, predators):
 
         vectors = [self.direction]
 
-        separation = self.avoidance(boids, game_objects)
-        if separation != (0, 0):    # If there's a separation value, we only care about that
-            vectors.append(separation)
+        avoidance = self.avoidance(boids, game_objects, predators)
+        if avoidance != (0, 0):    # If there's a separation value, we only care about that
+            vectors.append(avoidance)
         else:                       # Otherwise let's focus on being a group
             vectors.append(self.alignment(boids))
             vectors.append(self.cohesion(boids))
@@ -75,14 +75,16 @@ class Boid(Obstacle):
         target_direction = (x / len(vectors),
                             y / len(vectors))
 
-        target_direction = get_unit_vector(target_direction)
-        target_direction = (target_direction[0] / this_turn_factor,
-                            target_direction[1] / this_turn_factor)
+        target_direction = Boid.get_unit_vector(target_direction)
+        target_direction = (target_direction[0] / self.turn_factor,
+                            target_direction[1] / self.turn_factor)
 
         new_direction = (target_direction[0] + self.direction[0],
                          target_direction[1] + self.direction[1])
 
-        self.direction = get_unit_vector(new_direction)
+        self.direction = Boid.get_unit_vector(new_direction)
+        self.direction = (self.__class__.speed * self.direction[0],
+                          self.__class__.speed * self.direction[1])
 
     def distance_to(self, boid):
 
@@ -91,12 +93,13 @@ class Boid(Obstacle):
 
         return sqrt(x_sq + y_sq)
 
-    def avoidance(self, boids, game_objects):
+    def avoidance(self, boids, game_objects, predators):
 
         avg_x = 0
         avg_y = 0
 
-        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
+        close_obstacles = self.get_objects_within_distance(predators, 2 * self.min_distance)
+        close_obstacles.extend(self.get_objects_within_distance(game_objects, 2 * self.min_distance))
         close_obstacles.extend(self.get_objects_within_distance(boids, 2 * self.min_distance, False))
         if len(close_obstacles) == 0:
             close_obstacles = self.get_objects_within_distance(boids, self.min_distance, True)
@@ -112,7 +115,7 @@ class Boid(Obstacle):
 
         vector_from_center = (self.x - avg_x,
                               self.y - avg_y)
-        vector_from_center = get_unit_vector(vector_from_center)
+        vector_from_center = Boid.get_unit_vector(vector_from_center)
 
         return vector_from_center
 
@@ -127,7 +130,7 @@ class Boid(Obstacle):
         total_direction = (sum(boid.direction[0] for boid in close_boids),
                            sum(boid.direction[1] for boid in close_boids))
 
-        average_direction = get_unit_vector(total_direction)
+        average_direction = Boid.get_unit_vector(total_direction)
 
         return average_direction
 
@@ -150,7 +153,7 @@ class Boid(Obstacle):
 
         vector_to_center = (avg_x - self.x,
                             avg_y - self.y)
-        vector_to_center = get_unit_vector(vector_to_center)
+        vector_to_center = Boid.get_unit_vector(vector_to_center)
 
         return vector_to_center
 
@@ -174,14 +177,19 @@ class Boid(Obstacle):
 
         return close_objects
 
+    def respawn(self):
 
-def get_unit_vector(vector):
+        self.x = random.randrange(config.world_size[0])
+        self.y = random.randrange(config.world_size[1])
 
-    vector_magnitude = sqrt(vector[0] ** 2 + vector[1] ** 2)
+    @staticmethod
+    def get_unit_vector(vector):
 
-    if vector_magnitude == 0:
-        return 0, 0
+        vector_magnitude = sqrt(vector[0] ** 2 + vector[1] ** 2)
 
-    unit_vector = (vector[0] / vector_magnitude,
-                   vector[1] / vector_magnitude)
-    return unit_vector
+        if vector_magnitude == 0:
+            return 0, 0
+
+        unit_vector = (vector[0] / vector_magnitude,
+                       vector[1] / vector_magnitude)
+        return unit_vector

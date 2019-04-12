@@ -5,6 +5,7 @@ class GameObject:
 
     color = (0, 0, 0)
     screen = None
+    radius = 10
 
     def __init__(self, x, y):
 
@@ -17,4 +18,4 @@ class GameObject:
         pygame.draw.circle(GameObject.screen,
                            GameObject.color,
                            (round(self.x), round(self.y)),
-                           10)
+                           self.__class__.radius)
