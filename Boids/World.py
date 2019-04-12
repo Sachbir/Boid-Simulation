@@ -3,6 +3,7 @@ import pygame
 import sys
 from Boid import Boid
 from GameObject import GameObject
+from Predator import Predator
 from Species import Species
 from time import time
 
@@ -24,16 +25,22 @@ class World:
 
         self.boids = []
         self.game_objects = []
+        self.predator = []
+
+
+        self.boids = World.spawn_boids()
 
         for i in range(240, 480, 10):
             self.game_objects.append(GameObject(320, i))
-        self.game_objects.append(GameObject(960, 360))
+        self.game_objects.append(GameObject(640, 360))
+
+        self.predator.append(Predator())
 
         self.display_UPS = False
 
     def run(self):
 
-        self.boids = World.spawn_boids()
+
 
         while True:
             start_time = time()

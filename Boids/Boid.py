@@ -62,7 +62,7 @@ class Boid(Obstacle):
 
         vectors = [self.direction]
 
-        separation = self.separation(boids, game_objects)
+        separation = self.avoidance(boids, game_objects)
         if separation != (0, 0):    # If there's a separation value, we only care about that
             vectors.append(separation)
         else:                       # Otherwise let's focus on being a group
@@ -91,7 +91,7 @@ class Boid(Obstacle):
 
         return sqrt(x_sq + y_sq)
 
-    def separation(self, boids, game_objects):
+    def avoidance(self, boids, game_objects):
 
         avg_x = 0
         avg_y = 0

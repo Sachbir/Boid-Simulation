@@ -1,11 +1,13 @@
 # Boid-Simulation
 
-This is a fun exploration of emergent behaviors from a very simple ruleset, inspired by some very peculiar behavior in my Ants project. The rules of Boids are as follows: 
+This is my recreation of Boids, the artificial life emulator by Craig Reynolds. The idea is to explore emergent behaviours stemming from a simple set of rules. 
 
-1. Separation - avoid crowding local boids
-2. Alignment - aim towards the average direction of local boids
-3. Cohesion - move towards the center of local boids
+Boids follow 3 basic rules: 
 
-As of now, I have completed the basic model, and have started on a few additions. The current model has an improved avoidance system adapted from the separation rules that avoids other objects as well. 
+- Separation: steer to avoid local boids
+- Alignment: steer towards the average aim of local boids
+- Cohesion: steer to move towards the average position of local boids
 
-In the future, I plan on adding a predator-prey dynamic before I consider this finished. 
+As of now, I've completed the simulation as it was originally outlined, and even expanded on it. I've added obstacle avoidance, and different species that interact with one another, all without significantly altering the simplicity of the system. 
+
+The only other thing I'd like to add is a predator-prey dynamic. I think it'd be interesting to see how the flocks would react in response. I'm thinking I could give predators a speed advantage but prey a turning advantage, which may give them a fighting chance. 
