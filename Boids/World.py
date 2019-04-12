@@ -41,7 +41,7 @@ class World:
         last_measured_UPS = 0
 
         while True:
-            start_time = time()
+            frame_time_start = time()
 
             self.process_events()
 
@@ -58,9 +58,9 @@ class World:
             for obstacle in self.game_objects:
                 obstacle.update()
 
-            end_time = time()
+            frame_time_end = time()
 
-            config.measured_UPS += (1 / (end_time - start_time))
+            config.measured_UPS += (1 / (frame_time_end - frame_time_start))
             config.frame_counter += 1
             if config.frame_counter == config.num_frames_to_measure:
                 last_measured_UPS = round(config.measured_UPS / config.frame_counter)
@@ -89,22 +89,22 @@ class World:
                 if event.key == pygame.K_p:         # Display Predator View Range
                     Predator.display_view_range = not Predator.display_view_range
                 if event.key == pygame.K_s:         # Cycle Species Count
-                    config.num_of_species += 1
+                    config.num_of_species_to_display += 1
                     # noinspection PyTypeChecker
-                    if config.num_of_species > len(Species):
-                        config.num_of_species = 1
+                    if config.num_of_species_to_display > len(Species):
+                        config.num_of_species_to_display = 1
                     self.spawn_boids()
 
     def spawn_boids(self):
 
         self.boids = []
 
-        species_count = 0
+        species_counter = 0
         for species in Species:
-            for i in range(int(config.boid_cap / config.num_of_species)):
+            for i in range(int(config.total_boid_cap / config.num_of_species_to_display)):
                 self.boids.append(Boid(species))
-            species_count += 1
-            if species_count == config.num_of_species:
+            species_counter += 1
+            if species_counter == config.num_of_species_to_display:
                 break
 
 

@@ -17,24 +17,25 @@ def render(last_measured_UPS):
                      (170, 170, 170),
                      gui_background)
 
-    start = 10
-    spacing = 22
+    top_border_spacing = 10
+    text_spacing = 22
 
-    print_gui_text("UPS: " + str(last_measured_UPS), start)
-    start += spacing
-    print_gui_text("(Space) Pause", start)
-    start += spacing
-    print_gui_text("(R) Restart", start)
-    start += spacing
-    print_gui_text("(S) Species: " + str(config.num_of_species), start)
-    start += spacing
-    print_gui_text("(P) Predator Vision", start)
-    start += spacing
+    add_label("UPS: " + str(last_measured_UPS), top_border_spacing)
+    top_border_spacing += text_spacing
+    add_label("(Space) Pause", top_border_spacing)
+    top_border_spacing += text_spacing
+    add_label("(R) Restart", top_border_spacing)
+    top_border_spacing += text_spacing
+    add_label("(S) Species: " + str(config.num_of_species_to_display), top_border_spacing)
+    top_border_spacing += text_spacing
+    add_label("(P) Predator Vision", top_border_spacing)
 
 
 # @staticmethod
-def print_gui_text(words, y):
+def add_label(words, top_spacing):
+
+    left_border_spacing = 10
 
     text.render_to(pygame.display.get_surface(),
-                   (10, y),
+                   (left_border_spacing, top_spacing),
                    words)

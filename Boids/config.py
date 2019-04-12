@@ -16,6 +16,6 @@ frame_counter = 0
 
 # Boid Settings
 
-boid_cap = 72
-num_of_species = 2
+total_boid_cap = 72
+num_of_species_to_display = 2
 turn_factor = 20  # Higher is slower
