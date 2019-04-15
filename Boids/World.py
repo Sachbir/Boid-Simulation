@@ -4,12 +4,10 @@ import pygame.freetype
 import sys
 from Boid import Boid
 from GameObject import GameObject
+from GUI import GUI
 from Predator import Predator
 from Species import Species
 from time import time
-
-# from GUI import GUI
-import GUI
 
 pygame.init()
 # set_repeat doesn't want parameters, but requires them on Windows to function
@@ -24,6 +22,7 @@ class World:
     def __init__(self):
 
         self.clock = pygame.time.Clock()
+        self.GUI = GUI()
 
         self.boids = []
         self.predators = []
@@ -73,7 +72,6 @@ class World:
                 config.frame_counter = 0
     def spawn_boids(self):
 
-            GUI.render(last_measured_UPS)
 
             pygame.display.flip()
             self.clock.tick(config.target_UPS)
