@@ -28,6 +28,7 @@ class World:
         self.predators = []
         self.game_objects = []
 
+        self.UPS_to_display = 0
 
     def run(self):
 
@@ -38,12 +39,9 @@ class World:
             self.game_objects.append(GameObject(320, i))
         self.game_objects.append(GameObject(640, 360))
 
-        last_measured_UPS = 0
         while True:
-            frame_time_start = time()
-
+            frame_start_time = time()
             self.process_events()
-
             screen.fill((220, 225, 230))  # Slightly blue
 
             """Update Entities"""
@@ -62,19 +60,20 @@ class World:
             self.GUI.render(self.UPS_to_display)
             pygame.display.flip()
 
-            frame_time_end = time()
+            self.measure_UPS(frame_start_time)
+            self.clock.tick(config.max_UPS)
 
-            config.measured_UPS += (1 / (frame_time_end - frame_time_start))
-            config.frame_counter += 1
-            if config.frame_counter == config.num_frames_to_measure:
-                last_measured_UPS = round(config.measured_UPS / config.frame_counter)
-                config.measured_UPS = 0
-                config.frame_counter = 0
     def spawn_boids(self):
 
+        self.boids = []
 
-            pygame.display.flip()
-            self.clock.tick(config.target_UPS)
+        species_counter = 0
+        for species in Species:
+            for i in range(int(config.total_boid_cap / config.num_of_species_to_display)):
+                self.boids.append(Boid(species))
+            species_counter += 1
+            if species_counter == config.num_of_species_to_display:
+                break
 
     def process_events(self):
 
@@ -99,15 +98,23 @@ class World:
                         config.num_of_species_to_display = 1
                     self.spawn_boids()
 
+    def measure_UPS(self, start_time):
 
+        frame_time_end = time()
+        time_elapsed = frame_time_end - start_time
 
-        species_counter = 0
-        for species in Species:
-            for i in range(int(config.total_boid_cap / config.num_of_species_to_display)):
-                self.boids.append(Boid(species))
-            species_counter += 1
-            if species_counter == config.num_of_species_to_display:
-                break
+        # When the frame renders as fast as possible (minimal/zero values), UPS reaches the maximum allowed
+        try:
+            measured_UPS = min((1 / time_elapsed), config.max_UPS)
+        except ZeroDivisionError:
+            measured_UPS = 120
+        config.measured_UPS += measured_UPS
+
+        config.frame_counter += 1
+        if config.frame_counter == config.num_frames_to_measure:
+            self.UPS_to_display = round(config.measured_UPS / config.frame_counter)
+            config.measured_UPS = 0
+            config.frame_counter = 0
 
 
 world = World()
