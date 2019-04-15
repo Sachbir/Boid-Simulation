@@ -9,14 +9,18 @@ from Species import Species
 
 class Boid(Obstacle):
 
-    view_distance = 100
-    min_distance = 25
-    speed = 1
     radius = 4
+
+    view_dist = 150
+    neighbour_dist_min = 25
+    avoidance_dist = 50
+
+    speed = 1
+    turn_factor = 20
 
     screen = None
 
-    def __init__(self, species=Species.Raven):
+    def __init__(self, species=Species.Cardinal):
 
         super().__init__(species)
 
@@ -25,8 +29,6 @@ class Boid(Obstacle):
 
         self.direction = (random.uniform(1, -1), random.uniform(1, -1))
         self.direction = Boid.get_unit_vector(self.direction)
-
-        self.turn_factor = config.turn_factor
 
     def update(self):
 
@@ -76,8 +78,8 @@ class Boid(Obstacle):
                             y / len(vectors))
 
         target_direction = Boid.get_unit_vector(target_direction)
-        target_direction = (target_direction[0] / self.turn_factor,
-                            target_direction[1] / self.turn_factor)
+        target_direction = (target_direction[0] / Boid.turn_factor,
+                            target_direction[1] / Boid.turn_factor)
 
         new_direction = (target_direction[0] + self.direction[0],
                          target_direction[1] + self.direction[1])
@@ -98,11 +100,11 @@ class Boid(Obstacle):
         avg_x = 0
         avg_y = 0
 
-        close_obstacles = self.get_objects_within_distance(predators, 2 * self.min_distance)
-        close_obstacles.extend(self.get_objects_within_distance(game_objects, 2 * self.min_distance))
-        close_obstacles.extend(self.get_objects_within_distance(boids, 2 * self.min_distance, False))
+        close_obstacles = self.get_objects_within_distance(predators, Boid.avoidance_dist)
+        close_obstacles.extend(self.get_objects_within_distance(game_objects, Boid.avoidance_dist))
+        close_obstacles.extend(self.get_objects_within_distance(boids, Boid.avoidance_dist, False))
         if len(close_obstacles) == 0:
-            close_obstacles = self.get_objects_within_distance(boids, self.min_distance, True)
+            close_obstacles = self.get_objects_within_distance(boids, Boid.neighbour_dist_min, True)
         if len(close_obstacles) == 0:
             return 0, 0
 
@@ -121,7 +123,7 @@ class Boid(Obstacle):
 
     def alignment(self, boids):
 
-        close_boids = self.get_objects_within_distance(boids, self.view_distance, True)
+        close_boids = self.get_objects_within_distance(boids, self.view_dist, True)
 
         directions = []
         for boid in close_boids:
@@ -136,7 +138,7 @@ class Boid(Obstacle):
 
     def cohesion(self, boids):
 
-        close_boids = self.get_objects_within_distance(boids, self.view_distance * 2, True)
+        close_boids = self.get_objects_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0

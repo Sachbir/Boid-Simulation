@@ -29,6 +29,9 @@ class World:
         self.predators = []
         self.game_objects = []
 
+
+    def run(self):
+
         self.spawn_boids()
         self.predators.append(Predator())
 
@@ -36,10 +39,7 @@ class World:
             self.game_objects.append(GameObject(320, i))
         self.game_objects.append(GameObject(640, 360))
 
-    def run(self):
-
         last_measured_UPS = 0
-
         while True:
             frame_time_start = time()
 
@@ -47,16 +47,21 @@ class World:
 
             screen.fill((220, 225, 230))  # Slightly blue
 
+            """Update Entities"""
             for predator in self.predators:
                 predator.calculate_new_direction(self.boids, self.game_objects, self.predators)
-            for predator in self.predators:
-                predator.update()
             for boid in self.boids:
                 boid.calculate_new_direction(self.boids, self.game_objects, self.predators)
+
+            """Update Display"""
+            for predator in self.predators:
+                predator.update()
             for boid in self.boids:
                 boid.update()
             for obstacle in self.game_objects:
                 obstacle.update()
+            self.GUI.render(self.UPS_to_display)
+            pygame.display.flip()
 
             frame_time_end = time()
 
@@ -66,6 +71,7 @@ class World:
                 last_measured_UPS = round(config.measured_UPS / config.frame_counter)
                 config.measured_UPS = 0
                 config.frame_counter = 0
+    def spawn_boids(self):
 
             GUI.render(last_measured_UPS)
 
@@ -80,14 +86,14 @@ class World:
                 sys.exit(0)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:     # Pause
-                    if config.target_UPS == 1:
-                        config.target_UPS = 240
+                    if config.max_UPS == 1:
+                        config.max_UPS = 240
                     else:
-                        config.target_UPS = 1
+                        config.max_UPS = 1
                 if event.key == pygame.K_r:         # Restart
                     self.spawn_boids()
                 if event.key == pygame.K_p:         # Display Predator View Range
-                    Predator.display_view_range = not Predator.display_view_range
+                    Predator.render_view_range = not Predator.render_view_range
                 if event.key == pygame.K_s:         # Cycle Species Count
                     config.num_of_species_to_display += 1
                     # noinspection PyTypeChecker
@@ -95,9 +101,7 @@ class World:
                         config.num_of_species_to_display = 1
                     self.spawn_boids()
 
-    def spawn_boids(self):
 
-        self.boids = []
 
         species_counter = 0
         for species in Species:

@@ -6,18 +6,19 @@ from math import sqrt
 
 class Predator(Boid):
 
-    # turn_speed = ?
+    radius = 6
+    render_view_range = False
+
     eat_range = 7
+
     max_speed = 1.3
-    radius = 5
-    display_view_range = False
+    turn_factor = 0.6 * Boid.turn_factor    # Turn 40% faster than Boids (compensates for wide turns at higher speeds)
 
     def __init__(self, species=None):
 
         super().__init__(species)
         self.speed = 1
         self.collision_box = None
-        self.turn_factor = 1        # TODO: Why does this do nothing?
 
     def update(self):
 
@@ -27,16 +28,14 @@ class Predator(Boid):
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
                                          2 * Predator.eat_range, 2 * Predator.eat_range)
 
-        if Predator.display_view_range:
+        if Predator.render_view_range:
             pygame.draw.circle(pygame.display.get_surface(),
                                (255, 0, 0),
                                (round(self.x), round(self.y)),
-                               self.view_distance,
+                               self.view_dist,
                                1)
 
     def calculate_new_direction(self, boids, game_objects, predators):
-
-        this_turn_factor = config.turn_factor
 
         vectors = [self.direction]
 
@@ -57,8 +56,8 @@ class Predator(Boid):
                             y / len(vectors))
 
         target_direction = Boid.get_unit_vector(target_direction)
-        target_direction = (target_direction[0] / this_turn_factor,
-                            target_direction[1] / this_turn_factor)
+        target_direction = (target_direction[0] / Predator.turn_factor,
+                            target_direction[1] / Predator.turn_factor)
 
         new_direction = (target_direction[0] + self.direction[0],
                          target_direction[1] + self.direction[1])
@@ -72,8 +71,8 @@ class Predator(Boid):
         avg_x = 0
         avg_y = 0
 
-        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.min_distance)
-        close_obstacles.extend(self.get_objects_within_distance(predators, 2 * self.min_distance))
+        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.neighbour_dist_min)
+        close_obstacles.extend(self.get_objects_within_distance(predators, 2 * self.neighbour_dist_min))
         if len(close_obstacles) == 0:
             return 0, 0
 
@@ -93,7 +92,7 @@ class Predator(Boid):
     # Very similar to cohesion (Boid class), except it targets a specific boid
     def hunt(self, boids):
 
-        close_boids = self.get_objects_within_distance(boids, self.view_distance)
+        close_boids = self.get_objects_within_distance(boids, self.view_dist)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -109,7 +108,7 @@ class Predator(Boid):
         if closest_boid is None:
             return 0, 0
 
-        if Predator.display_view_range:
+        if Predator.render_view_range:
             pygame.draw.line(pygame.display.get_surface(),
                              (255, 0, 0),
                              (round(self.x), round(self.y)),

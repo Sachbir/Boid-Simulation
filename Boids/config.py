@@ -8,7 +8,7 @@ world_size = 1280, 768
 
 # UPS
 
-target_UPS = 120
+max_UPS = 120
 measured_UPS = 0
 num_frames_to_measure = 100
 frame_counter = 0
@@ -18,4 +18,3 @@ frame_counter = 0
 
 total_boid_cap = 72
 num_of_species_to_display = 2
-turn_factor = 20  # Higher is slower
