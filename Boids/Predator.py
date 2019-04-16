@@ -1,4 +1,3 @@
-import config
 import pygame
 from Boid import Boid
 from math import sqrt
@@ -6,7 +5,7 @@ from math import sqrt
 
 class Predator(Boid):
 
-    radius = 6
+    size = 12
     render_view_range = False
 
     eat_range = 7

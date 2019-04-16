@@ -2,14 +2,15 @@
 
 import config
 import random
-from math import sqrt
 from Obstacle import Obstacle
+from math import sqrt, sin, cos, pi
 from Species import Species
+import pygame
 
 
 class Boid(Obstacle):
 
-    radius = 4
+    size = 9
 
     view_dist = 150
     neighbour_dist_min = 25
@@ -32,33 +33,39 @@ class Boid(Obstacle):
 
     def update(self):
 
+        """ Update Coordinates """
         self.x += self.direction[0]
         self.y += self.direction[1]
 
         self.x %= config.world_size[0]
         self.y %= config.world_size[1]
 
-        super().update()
+        """ Update Rendered Object """
 
-        # Keep this for demos until triangle turning is complete
-        # pygame.draw.circle(Boid.screen,
-        #                    self.color,
-        #                    (round(self.x), round(self.y)),
-        #                    Boid.radius)
+        size = self.__class__.size
 
-        # size = 10
+        coord_1 = Boid.get_unit_vector(self.direction)
+        coord_2 = Boid.rotate_vector(coord_1, 140)
+        coord_3 = Boid.rotate_vector(coord_1, 180)
+        coord_4 = Boid.rotate_vector(coord_1, -140)
 
-        # Terribly ugly
-        # front_coord = [round(self.x + self.direction[0]) * size,
-        #                round(self.y + self.direction[1]) * size]
-        # back_left_coord = [round(self.x - self.direction[0] * cos(3 * pi / 4)) * size,
-        #                    round(self.y - self.direction[1] * sin(3 * pi / 4)) * size]
-        # back_right_coord = [round(self.x - self.direction[0] * cos(5 * pi / 4)) * size,
-        #                     round(self.y - self.direction[1] * sin(5 * pi / 4)) * size]
-        #
-        # pygame.draw.polygon(Boid.screen,
-        #                     (0, 0, 0),
-        #                     [front_coord, back_left_coord, back_right_coord])
+        coord_1 = (round(self.x + size * coord_1[0]),
+                   round(self.y + size * coord_1[1]))
+        coord_2 = (round(self.x + size * coord_2[0]),
+                   round(self.y + size * coord_2[1]))
+        coord_3 = (round(self.x + size / 3 * coord_3[0]),
+                   round(self.y + size / 3 * coord_3[1]))   # Looks better if back point is like this, trust me
+        coord_4 = (round(self.x + size * coord_4[0]),
+                   round(self.y + size * coord_4[1]))
+
+        if self.species is None:
+            color = 0, 0, 0
+        else:
+            color = self.species.value
+
+        pygame.draw.polygon(pygame.display.get_surface(),
+                            color,
+                            [coord_1, coord_2, coord_3, coord_4])
 
     def calculate_new_direction(self, boids, game_objects, predators):
 
@@ -195,3 +202,19 @@ class Boid(Obstacle):
         unit_vector = (vector[0] / vector_magnitude,
                        vector[1] / vector_magnitude)
         return unit_vector
+
+    @staticmethod
+    def rotate_vector(vector, angle_degrees):
+
+        angle_radians = angle_degrees / 180 * pi
+
+        x = vector[0]
+        y = vector[1]
+
+        cos_angle = cos(angle_radians)
+        sin_angle = sin(angle_radians)
+
+        new_vector = (cos_angle * x - sin_angle * y,
+                      sin_angle * x + cos_angle * y)
+
+        return new_vector
