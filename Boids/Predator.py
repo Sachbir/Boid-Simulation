@@ -38,37 +38,6 @@ class Predator(Boid):
                                self.view_dist,
                                1)
 
-    def calculate_new_direction(self, boids, game_objects, predators):
-
-        vectors = [self.direction]
-
-        avoidance = self.avoidance(boids, game_objects, predators)
-        hunting = self.hunt(boids)
-        if avoidance != (0, 0):    # If there's a separation value, we only care about that
-            vectors.append(avoidance)
-        elif hunting != (0, 0):
-            vectors.append(hunting)
-        else:                       # Otherwise let's focus on being a group
-            vectors.append(self.alignment(boids))
-            vectors.append(self.cohesion(boids))
-
-        x = sum(vectors[i][0] for i in range(len(vectors)))
-        y = sum(vectors[i][1] for i in range(len(vectors)))
-
-        target_direction = (x / len(vectors),
-                            y / len(vectors))
-
-        target_direction = Boid.get_unit_vector(target_direction)
-        target_direction = (target_direction[0] / Predator.turn_factor,
-                            target_direction[1] / Predator.turn_factor)
-
-        new_direction = (target_direction[0] + self.direction[0],
-                         target_direction[1] + self.direction[1])
-
-        self.direction = Boid.get_unit_vector(new_direction)
-        self.direction = (self.speed * self.direction[0],
-                          self.speed * self.direction[1])
-
     def avoidance(self, boids, entities, predators):
         """Predators should maintain distance between themselves and other entities
         Could potentially combine this with Boid.avoidance, but you'd need to somehow account for Predators not avoiding

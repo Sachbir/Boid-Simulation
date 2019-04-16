@@ -85,15 +85,15 @@ class Boid(Entity):
                             y / len(vectors))
 
         target_direction = Boid.get_unit_vector(target_direction)
-        target_direction = (target_direction[0] / Boid.turn_factor,
-                            target_direction[1] / Boid.turn_factor)
+        target_direction = (target_direction[0] / self.__class__.turn_factor,
+                            target_direction[1] / self.__class__.turn_factor)
 
         new_direction = (target_direction[0] + self.direction[0],
                          target_direction[1] + self.direction[1])
 
         self.direction = Boid.get_unit_vector(new_direction)
-        self.direction = (self.__class__.speed * self.direction[0],
-                          self.__class__.speed * self.direction[1])
+        self.direction = (self.speed * self.direction[0],
+                          self.speed * self.direction[1])
 
     def distance_to(self, entity):
         """Gets the scalar distance from the given entity"""
