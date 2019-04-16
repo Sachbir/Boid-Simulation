@@ -10,12 +10,14 @@ from GUI import GUI
 from Predator import Predator
 from Species import Species
 
-
 pygame.init()
 # set_repeat doesn't want parameters, but requires them on Windows to function
 # noinspection PyArgumentList
 pygame.key.set_repeat(200, 100)
 screen = pygame.display.set_mode(config.world_size)
+pygame.display.set_caption("Boid Simulation")
+icon = pygame.image.load("icon.png")
+pygame.display.set_icon(icon)
 
 
 # noinspection PyPep8Naming
