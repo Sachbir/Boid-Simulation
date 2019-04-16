@@ -3,11 +3,12 @@ import pygame
 import pygame.freetype
 import sys
 from Boid import Boid
-from GameObject import GameObject
 from GUI import GUI
 from Predator import Predator
 from Species import Species
 from time import time
+
+from Entity import Entity
 
 pygame.init()
 # set_repeat doesn't want parameters, but requires them on Windows to function
@@ -36,8 +37,8 @@ class World:
         self.predators.append(Predator())
 
         for i in range(240, 480, 10):
-            self.game_objects.append(GameObject(320, i))
-        self.game_objects.append(GameObject(640, 360))
+            self.game_objects.append(Entity(None, 320, i))
+        self.game_objects.append(Entity(None, 640, 360))
 
         while True:
             frame_start_time = time()

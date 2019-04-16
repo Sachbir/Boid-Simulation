@@ -2,13 +2,13 @@
 
 import config
 import random
-from Obstacle import Obstacle
 from math import sqrt, sin, cos, pi
+from Entity import Entity
 from Species import Species
 import pygame
 
 
-class Boid(Obstacle):
+class Boid(Entity):
 
     size = 9
 

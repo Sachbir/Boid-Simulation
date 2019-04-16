@@ -1,19 +1,19 @@
 import pygame
 
 
-class Obstacle:
+class Entity:
 
     screen = None
-    radius = 4
+    radius = 10
 
-    def __init__(self, species=None):
+    def __init__(self, species=None, x=None, y=None):
 
-        self.x = None
-        self.y = None
+        self.x = x
+        self.y = y
 
         self.species = species
 
-        Obstacle.screen = pygame.display.get_surface()
+        Entity.screen = pygame.display.get_surface()
 
     def update(self):
 
@@ -22,7 +22,7 @@ class Obstacle:
         else:
             color = self.species.value
 
-        pygame.draw.circle(Obstacle.screen,
+        pygame.draw.circle(Entity.screen,
                            color,
                            (round(self.x), round(self.y)),
                            self.__class__.radius)
