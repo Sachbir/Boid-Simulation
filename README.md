@@ -1,3 +1,5 @@
+![Boids Screenshot](Boids.png)
+
 # Boid-Simulation
 
 This is my recreation of Boids, the artificial life emulator by Craig Reynolds. The idea is to explore emergent behaviours stemming from a simple set of rules. 

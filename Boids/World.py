@@ -1,14 +1,15 @@
-import config
 import pygame
 import pygame.freetype
 import sys
+from time import time
+
+import config
 from Boid import Boid
+from Entity import Entity
 from GUI import GUI
 from Predator import Predator
 from Species import Species
-from time import time
 
-from Entity import Entity
 
 pygame.init()
 # set_repeat doesn't want parameters, but requires them on Windows to function
@@ -19,6 +20,7 @@ screen = pygame.display.set_mode(config.world_size)
 
 # noinspection PyPep8Naming
 class World:
+    """Contains and acts upon the simulation"""
 
     def __init__(self):
 
@@ -27,44 +29,47 @@ class World:
 
         self.boids = []
         self.predators = []
-        self.game_objects = []
+        self.entities = []
 
         self.UPS_to_display = 0
 
     def run(self):
+        """Run the main cycle until terminated
+        Update and render all entities"""
 
         self.spawn_boids()
         self.predators.append(Predator())
 
         for i in range(240, 480, 10):
-            self.game_objects.append(Entity(None, 320, i))
-        self.game_objects.append(Entity(None, 640, 360))
+            self.entities.append(Entity(None, 320, i))      # Wall on the left
+        self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
 
         while True:
             frame_start_time = time()
             self.process_events()
-            screen.fill((220, 225, 230))  # Slightly blue
+            screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
-            """Update Entities"""
+            """ Update Entities """
             for predator in self.predators:
-                predator.calculate_new_direction(self.boids, self.game_objects, self.predators)
+                predator.calculate_new_direction(self.boids, self.entities, self.predators)
             for boid in self.boids:
-                boid.calculate_new_direction(self.boids, self.game_objects, self.predators)
+                boid.calculate_new_direction(self.boids, self.entities, self.predators)
 
-            """Update Display"""
+            """ Update Display """
             for predator in self.predators:
                 predator.update()
             for boid in self.boids:
                 boid.update()
-            for obstacle in self.game_objects:
+            for obstacle in self.entities:
                 obstacle.update()
             self.GUI.render(self.UPS_to_display)
             pygame.display.flip()
 
             self.measure_UPS(frame_start_time)
-            self.clock.tick(config.max_UPS)
+            self.clock.tick(config.UPS_max)
 
     def spawn_boids(self):
+        """Generate initial set of Boids based on system settings"""
 
         self.boids = []
 
@@ -77,6 +82,7 @@ class World:
                 break
 
     def process_events(self):
+        """Checks for any and all events occurring during runtime"""
 
         for event in pygame.event.get():
             if (event.type == pygame.QUIT or
@@ -84,10 +90,10 @@ class World:
                 sys.exit(0)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:     # Pause
-                    if config.max_UPS == 1:
-                        config.max_UPS = 240
+                    if config.UPS_max == 1:
+                        config.UPS_max = 240
                     else:
-                        config.max_UPS = 1
+                        config.UPS_max = 1
                 if event.key == pygame.K_r:         # Restart
                     self.spawn_boids()
                 if event.key == pygame.K_p:         # Display Predator View Range
@@ -100,21 +106,22 @@ class World:
                     self.spawn_boids()
 
     def measure_UPS(self, start_time):
+        """Takes the beginning and end time of the cycle to determine how fast the system is actually operating at"""
 
         frame_time_end = time()
         time_elapsed = frame_time_end - start_time
 
         # When the frame renders as fast as possible (minimal/zero values), UPS reaches the maximum allowed
         try:
-            measured_UPS = min((1 / time_elapsed), config.max_UPS)
+            measured_UPS = min((1 / time_elapsed), config.UPS_max)
         except ZeroDivisionError:
             measured_UPS = 120
-        config.measured_UPS += measured_UPS
+        config.UPS_measured += measured_UPS
 
         config.frame_counter += 1
         if config.frame_counter == config.num_frames_to_measure:
-            self.UPS_to_display = round(config.measured_UPS / config.frame_counter)
-            config.measured_UPS = 0
+            self.UPS_to_display = round(config.UPS_measured / config.frame_counter)
+            config.UPS_measured = 0
             config.frame_counter = 0
 
 

@@ -1,15 +1,16 @@
-# Note: Species-specific code is included, but the implementation needs work
+from math import sqrt, sin, cos, pi
+import pygame
+import random
 
 import config
-import random
-from math import sqrt, sin, cos, pi
 from Entity import Entity
 from Species import Species
-import pygame
 
 
 class Boid(Entity):
+    """The structure of a moving entity interacting with its environment"""
 
+    screen = None
     size = 9
 
     view_dist = 150
@@ -19,19 +20,17 @@ class Boid(Entity):
     speed = 1
     turn_factor = 20
 
-    screen = None
-
     def __init__(self, species=Species.Cardinal):
 
         super().__init__(species)
 
-        self.x = random.randrange(config.world_size[0])
-        self.y = random.randrange(config.world_size[1])
+        self.speed = Boid.speed
+        self.direction = None
 
-        self.direction = (random.uniform(1, -1), random.uniform(1, -1))
-        self.direction = Boid.get_unit_vector(self.direction)
+        self.respawn()
 
     def update(self):
+        """Update Boid's location, and draw it as appropriate"""
 
         """ Update Coordinates """
         self.x += self.direction[0]
@@ -40,7 +39,7 @@ class Boid(Entity):
         self.x %= config.world_size[0]
         self.y %= config.world_size[1]
 
-        """ Update Rendered Object """
+        """ Update Entity View """
 
         size = self.__class__.size
 
@@ -67,14 +66,15 @@ class Boid(Entity):
                             color,
                             [coord_1, coord_2, coord_3, coord_4])
 
-    def calculate_new_direction(self, boids, game_objects, predators):
+    def calculate_new_direction(self, boids, entities, predators):
+        """Determines which way the Boid should face given its surroundings"""
 
         vectors = [self.direction]
 
-        avoidance = self.avoidance(boids, game_objects, predators)
-        if avoidance != (0, 0):    # If there's a separation value, we only care about that
+        avoidance = self.avoidance(boids, entities, predators)
+        if avoidance != (0, 0):    # If there's an avoidance value, we only care about that
             vectors.append(avoidance)
-        else:                       # Otherwise let's focus on being a group
+        else:
             vectors.append(self.alignment(boids))
             vectors.append(self.cohesion(boids))
 
@@ -95,32 +95,35 @@ class Boid(Entity):
         self.direction = (self.__class__.speed * self.direction[0],
                           self.__class__.speed * self.direction[1])
 
-    def distance_to(self, boid):
+    def distance_to(self, entity):
+        """Gets the scalar distance from the given entity"""
 
-        x_sq = (self.x - boid.x) ** 2
-        y_sq = (self.y - boid.y) ** 2
+        x_sq = (self.x - entity.x) ** 2
+        y_sq = (self.y - entity.y) ** 2
 
         return sqrt(x_sq + y_sq)
 
-    def avoidance(self, boids, game_objects, predators):
+    def avoidance(self, boids, entities, predators):
+        """Boids should maintain distance between themselves and other entities"""
 
         avg_x = 0
         avg_y = 0
 
-        close_obstacles = self.get_objects_within_distance(predators, Boid.avoidance_dist)
-        close_obstacles.extend(self.get_objects_within_distance(game_objects, Boid.avoidance_dist))
-        close_obstacles.extend(self.get_objects_within_distance(boids, Boid.avoidance_dist, False))
-        if len(close_obstacles) == 0:
-            close_obstacles = self.get_objects_within_distance(boids, Boid.neighbour_dist_min, True)
-        if len(close_obstacles) == 0:
+        # Get all 'other' entities
+        close_entities = self.get_entities_within_distance(predators, Boid.avoidance_dist)
+        close_entities.extend(self.get_entities_within_distance(entities, Boid.avoidance_dist))
+        close_entities.extend(self.get_entities_within_distance(boids, Boid.avoidance_dist, False))
+        if len(close_entities) == 0:   # If none, get Boids of same species
+            close_entities = self.get_entities_within_distance(boids, Boid.neighbour_dist_min, True)
+        if len(close_entities) == 0:
             return 0, 0
 
-        for obstacle in close_obstacles:
+        for obstacle in close_entities:
             avg_x += obstacle.x
             avg_y += obstacle.y
 
-        avg_x /= len(close_obstacles)
-        avg_y /= len(close_obstacles)
+        avg_x /= len(close_entities)
+        avg_y /= len(close_entities)
 
         vector_from_center = (self.x - avg_x,
                               self.y - avg_y)
@@ -129,8 +132,9 @@ class Boid(Entity):
         return vector_from_center
 
     def alignment(self, boids):
+        """Boids should try to move in the same direction as their neighbours"""
 
-        close_boids = self.get_objects_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
 
         directions = []
         for boid in close_boids:
@@ -144,8 +148,9 @@ class Boid(Entity):
         return average_direction
 
     def cohesion(self, boids):
+        """Boids should stay close to their neighbours"""
 
-        close_boids = self.get_objects_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -166,33 +171,35 @@ class Boid(Entity):
 
         return vector_to_center
 
-    '''
-        Get objects around this object
-        If should_get_same_species is None (default), it ignores species entirely
-    '''
-    def get_objects_within_distance(self, objects, distance, should_get_same_species=None):
+    def get_entities_within_distance(self, entities, distance, should_get_same_species=None):
+        """Gets all entities near the Boid"""
 
-        close_objects = []
-        for obj in objects:
-            if obj == self:
+        close_entities = []
+        for entity in entities:
+            if entity == self:
                 continue    # Ignore self
             if should_get_same_species is not None:
-                if should_get_same_species and self.species != obj.species:
+                if should_get_same_species and self.species != entity.species:
                     continue    # If we want similar species, ignore the dissimilar
-                if not should_get_same_species and self.species == obj.species:
+                if not should_get_same_species and self.species == entity.species:
                     continue    # If we want dissimilar species, ignore the similar
-            if self.distance_to(obj) < distance:
-                close_objects.append(obj)   # For the remainder, if it's close enough, accept it
+            if self.distance_to(entity) < distance:
+                close_entities.append(entity)   # For the remainder, if it's close enough, accept it
 
-        return close_objects
+        return close_entities
 
     def respawn(self):
+        """Sets Boid's initial conditions"""
 
         self.x = random.randrange(config.world_size[0])
         self.y = random.randrange(config.world_size[1])
 
+        self.direction = (random.uniform(1, -1), random.uniform(1, -1))
+        self.direction = Boid.get_unit_vector(self.direction)
+
     @staticmethod
     def get_unit_vector(vector):
+        """Takes a given vector and normalizes it to a magnitude of 1"""
 
         vector_magnitude = sqrt(vector[0] ** 2 + vector[1] ** 2)
 
@@ -205,6 +212,7 @@ class Boid(Entity):
 
     @staticmethod
     def rotate_vector(vector, angle_degrees):
+        """Orients a given vector towards a given angle"""
 
         angle_radians = angle_degrees / 180 * pi
 

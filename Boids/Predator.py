@@ -1,9 +1,11 @@
 import pygame
-from Boid import Boid
 from math import sqrt
+
+from Boid import Boid
 
 
 class Predator(Boid):
+    """A type of Boid that hunts and kills other Boids"""
 
     size = 12
     render_view_range = False
@@ -20,12 +22,14 @@ class Predator(Boid):
         self.collision_box = None
 
     def update(self):
+        """Update Predator's location, and renders it as appropriate
+        Also renders its view distance if appropriate"""
 
         super().update()
         if self.speed < Predator.max_speed:
             self.speed += 0.001
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
-                                         2 * Predator.eat_range, 2 * Predator.eat_range)
+                                         2 * Predator.eat_range, 2 * Predator.eat_range)    # range in all directions
 
         if Predator.render_view_range:
             pygame.draw.circle(pygame.display.get_surface(),
@@ -65,13 +69,16 @@ class Predator(Boid):
         self.direction = (self.speed * self.direction[0],
                           self.speed * self.direction[1])
 
-    def avoidance(self, boids, game_objects, predators):
+    def avoidance(self, boids, entities, predators):
+        """Predators should maintain distance between themselves and other entities
+        Could potentially combine this with Boid.avoidance, but you'd need to somehow account for Predators not avoiding
+        their prey"""
 
         avg_x = 0
         avg_y = 0
 
-        close_obstacles = self.get_objects_within_distance(game_objects, 2 * self.neighbour_dist_min)
-        close_obstacles.extend(self.get_objects_within_distance(predators, 2 * self.neighbour_dist_min))
+        close_obstacles = self.get_entities_within_distance(entities, 2 * self.neighbour_dist_min)
+        close_obstacles.extend(self.get_entities_within_distance(predators, 2 * self.neighbour_dist_min))
         if len(close_obstacles) == 0:
             return 0, 0
 
@@ -88,16 +95,19 @@ class Predator(Boid):
 
         return vector_from_center
 
-    # Very similar to cohesion (Boid class), except it targets a specific boid
-    def hunt(self, boids):
+    def cohesion(self, boids):
+        """Search, target, and if possible, eat the nearest Boid
+        Also draws a path towards the nearest Boid if required
+        Extension of cohesion, as hunting is akin to the cohesion of predator and prey
+        Cannot combine with Boid.cohesion because that looks for multiple Boids; this finds only the closest"""
 
-        close_boids = self.get_objects_within_distance(boids, self.view_dist)
+        close_boids = self.get_entities_within_distance(boids, self.view_dist)
 
         if len(close_boids) == 0:
             return 0, 0
 
         closest_boid = None
-        distance_to_closest_boid = 10000
+        distance_to_closest_boid = 1000000    # Set high enough that the first boid will always be closer
         for boid in close_boids:
             distance_to_boid = sqrt((boid.x - self.x) ** 2 + (boid.y - self.y) ** 2)
             if distance_to_boid < distance_to_closest_boid:
