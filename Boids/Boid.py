@@ -13,7 +13,7 @@ class Boid(Entity):
     screen = None
     size = 9
 
-    view_dist = 150
+    view_dist = 75
     neighbour_dist_min = 25
     avoidance_dist = 50
 

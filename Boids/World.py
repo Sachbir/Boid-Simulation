@@ -1,3 +1,4 @@
+from math import floor
 import pygame
 import pygame.freetype
 import sys
@@ -51,11 +52,24 @@ class World:
             self.process_events()
             screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
+            # Render chunk lines
+            for i in range(1, round(config.world_size[0] / Boid.view_dist)):
+                pygame.draw.line(pygame.display.get_surface(),
+                                 (0, 0, 0),
+                                 (i * Boid.view_dist, 0),
+                                 (i * Boid.view_dist, config.world_size[1]),
+                                 1)
+                pygame.draw.line(pygame.display.get_surface(),
+                                 (0, 0, 0),
+                                 (0, i * Boid.view_dist),
+                                 (config.world_size[0], i * Boid.view_dist),
+                                 1)
+
             # Create dictionary of boids by location
             boid_dict = {}
             for boid in self.boids:
-                coord = (round(boid.x / Boid.view_dist),
-                         round(boid.y / Boid.view_dist))
+                coord = (floor(boid.x / Boid.view_dist),
+                         floor(boid.y / Boid.view_dist))
                 if coord in boid_dict:
                     boid_dict[coord].append(boid)
                 else:
