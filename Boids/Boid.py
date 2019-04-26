@@ -112,9 +112,11 @@ class Boid(Entity):
         # Get all 'other' entities
         close_entities = self.get_entities_within_distance(predators, Boid.avoidance_dist)
         close_entities.extend(self.get_entities_within_distance(entities, Boid.avoidance_dist))
-        close_entities.extend(self.get_entities_within_distance(boids, Boid.avoidance_dist, False))
+        # close_entities.extend(self.get_entities_within_distance(boids, Boid.avoidance_dist, False))
+        close_entities.extend(self.get_boids_within_distance(boids, Boid.avoidance_dist, False))
         if len(close_entities) == 0:   # If none, get Boids of same species
-            close_entities = self.get_entities_within_distance(boids, Boid.neighbour_dist_min, True)
+            # close_entities = self.get_entities_within_distance(boids, Boid.neighbour_dist_min, True)
+            close_entities = self.get_boids_within_distance(boids, Boid.neighbour_dist_min, True)
         if len(close_entities) == 0:
             return 0, 0
 
@@ -134,7 +136,8 @@ class Boid(Entity):
     def alignment(self, boids):
         """Boids should try to move in the same direction as their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
 
         directions = []
         for boid in close_boids:
@@ -150,7 +153,8 @@ class Boid(Entity):
     def cohesion(self, boids):
         """Boids should stay close to their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -170,6 +174,26 @@ class Boid(Entity):
         vector_to_center = Boid.get_unit_vector(vector_to_center)
 
         return vector_to_center
+
+    def get_boids_within_distance(self, boid_dict, distance, should_get_same_species=None):
+        """Gets all boids near the Boid"""
+
+        self_coord_rounded = (round(self.x / Boid.view_dist),
+                              round(self.y / Boid.view_dist))
+
+        close_boids = []
+
+        # Future improvement: parse 4 quadrants, not 9
+        for x in range(-1, 1):
+            for y in range(-1, 1):
+                coord = (x + self_coord_rounded[0],
+                         y + self_coord_rounded[1])
+                try:
+                    close_boids += boid_dict[coord]
+                except KeyError:
+                    continue
+
+        return self.get_entities_within_distance(close_boids, distance, should_get_same_species)
 
     def get_entities_within_distance(self, entities, distance, should_get_same_species=None):
         """Gets all entities near the Boid"""

@@ -40,7 +40,7 @@ class World:
         Update and render all entities"""
 
         self.spawn_boids()
-        self.predators.append(Predator())
+        # self.predators.append(Predator())
 
         for i in range(240, 480, 10):
             self.entities.append(Entity(None, 320, i))      # Wall on the left
@@ -51,11 +51,22 @@ class World:
             self.process_events()
             screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
+            # Create dictionary of boids by location
+            boid_dict = {}
+            for boid in self.boids:
+                coord = (round(boid.x / Boid.view_dist),
+                         round(boid.y / Boid.view_dist))
+                if coord in boid_dict:
+                    boid_dict[coord].append(boid)
+                else:
+                    boid_dict[coord] = [boid]
+
             """ Update Entities """
             for predator in self.predators:
                 predator.calculate_new_direction(self.boids, self.entities, self.predators)
             for boid in self.boids:
-                boid.calculate_new_direction(self.boids, self.entities, self.predators)
+                # boid.calculate_new_direction(self.boids, self.entities, self.predators)
+                boid.calculate_new_direction(boid_dict, self.entities, self.predators)
 
             """ Update Display """
             for predator in self.predators:
