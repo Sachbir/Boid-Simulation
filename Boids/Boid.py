@@ -178,20 +178,58 @@ class Boid(Entity):
     def get_boids_within_distance(self, boid_dict, distance, should_get_same_species=None):
         """Gets all boids near the Boid"""
 
-        self_coord_rounded = (round(self.x / Boid.view_dist),
-                              round(self.y / Boid.view_dist))
+        self_coord_chunk = (self.x / Boid.view_dist,
+                            self.y / Boid.view_dist)
+
+        chunks_to_search = []
+
+        start_chunk = (round(self_coord_chunk[0]),
+                       round(self_coord_chunk[1]))
+        chunks_to_search.append(start_chunk)
+
+        # This is a fucking mess
+        #   Basically, depending on which part of the chunk the boid is in, check adjacent chunks as well
+        #   This reduces search space from 9 chunks to 4
+        if self.x % 1 < .5:
+            # left of chunk
+            chunks_to_search.append((start_chunk[0] - 1,
+                                     start_chunk[1]))
+            if self.y % 1 < .5:
+                # top of chunk
+                chunks_to_search.append((start_chunk[0] - 1,
+                                         start_chunk[1] - 1))
+                chunks_to_search.append((start_chunk[0],
+                                         start_chunk[1] - 1))
+            else:
+                # bottom of chunk
+                chunks_to_search.append((start_chunk[0] - 1,
+                                         start_chunk[1] + 1))
+                chunks_to_search.append((start_chunk[0],
+                                         start_chunk[1] + 1))
+        else:
+            # right of chunk
+            chunks_to_search.append((start_chunk[0] + 1,
+                                     start_chunk[1]))
+            if self.y % 1 < .5:
+                # top of chunk
+                chunks_to_search.append((start_chunk[0] + 1,
+                                         start_chunk[1] - 1))
+                chunks_to_search.append((start_chunk[0],
+                                         start_chunk[1] - 1))
+            else:
+                # bottom of chunk
+                chunks_to_search.append((start_chunk[0] -+1,
+                                         start_chunk[1] + 1))
+                chunks_to_search.append((start_chunk[0],
+                                         start_chunk[1] + 1))
 
         close_boids = []
 
-        # Future improvement: parse 4 quadrants, not 9
-        for x in range(-1, 1):
-            for y in range(-1, 1):
-                coord = (x + self_coord_rounded[0],
-                         y + self_coord_rounded[1])
-                try:
-                    close_boids += boid_dict[coord]
-                except KeyError:
-                    continue
+        for chunk_id in chunks_to_search:
+            try:
+                close_boids += boid_dict[chunk_id]
+            except KeyError:
+                continue
 
         return self.get_entities_within_distance(close_boids, distance, should_get_same_species)
 
