@@ -112,10 +112,8 @@ class Boid(Entity):
         # Get all 'other' entities
         close_entities = self.get_entities_within_distance(predators, Boid.avoidance_dist)
         close_entities.extend(self.get_entities_within_distance(entities, Boid.avoidance_dist))
-        # close_entities.extend(self.get_entities_within_distance(boids, Boid.avoidance_dist, False))
         close_entities.extend(self.get_boids_within_distance(boids, Boid.avoidance_dist, False))
         if len(close_entities) == 0:   # If none, get Boids of same species
-            # close_entities = self.get_entities_within_distance(boids, Boid.neighbour_dist_min, True)
             close_entities = self.get_boids_within_distance(boids, Boid.neighbour_dist_min, True)
         if len(close_entities) == 0:
             return 0, 0
@@ -136,7 +134,6 @@ class Boid(Entity):
     def alignment(self, boids):
         """Boids should try to move in the same direction as their neighbours"""
 
-        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
         close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
 
         directions = []
@@ -153,7 +150,6 @@ class Boid(Entity):
     def cohesion(self, boids):
         """Boids should stay close to their neighbours"""
 
-        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
         close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
@@ -176,51 +172,38 @@ class Boid(Entity):
         return vector_to_center
 
     def get_boids_within_distance(self, boid_dict, distance, should_get_same_species=None):
-        """Gets all boids near the Boid"""
+        """
+        Gets all boids near the Boid
+
+        Gets a dictionary of all boids within a given chunk (defined by its upper-left corner)
+        Checks the chunk the boid is in, plus some of the surrounding chunks
+        As chunks are defined by the view distance of a boid, boids cannot see more than 4 chunks at a time
+        The location of a boid within a chunk determines which other chunks a boid can see
+        """
+
+        close_boids = []
 
         self_coord_chunk = (self.x / (2 * Boid.view_dist),
                             self.y / (2 * Boid.view_dist))
 
-        chunks_to_search = [[0, 0],
-                            [0, 0],
-                            [0, 0],
-                            [0, 0]
-                            ]
+        # Assume boid is in the bottom-right corner of the chunk
+        #   if the boid is closer to the top or left, add a negative offset
 
-        start_chunk = [floor(self_coord_chunk[0]),
-                       floor(self_coord_chunk[1])]
-        chunks_to_search.append(start_chunk)
-
-        chunks_to_search[0] = start_chunk               # center chunk
-        chunks_to_search[1][1] = start_chunk[1]         # horizontal chunk on same y
-        chunks_to_search[2][0] = start_chunk[0]         # vertical chunk on same x
-                                                        # corner chunk could be anything
-                                                        # I really need a paragraph or image to explain this better
-
+        offset_x = 0
+        offset_y = 0
         if self_coord_chunk[0] % 1 < 0.5:
-            # object is near left edge of chunk
-            chunks_to_search[1][0] = start_chunk[0] - 1
-            chunks_to_search[3][0] = start_chunk[0] - 1
-        else:
-            # object is near right edge of chunk
-            chunks_to_search[1][0] = start_chunk[0] + 1
-            chunks_to_search[3][0] = start_chunk[0] + 1
+            offset_x = -1
         if self_coord_chunk[1] % 1 < 0.5:
-            # object is near top edge of chunk
-            chunks_to_search[2][1] = start_chunk[1] - 1
-            chunks_to_search[3][1] = start_chunk[1] - 1
-        else:
-            # object is near bottom edge of chunk
-            chunks_to_search[2][1] = start_chunk[1] + 1
-            chunks_to_search[3][1] = start_chunk[1] + 1
+            offset_y = -1
 
-        close_boids = []
-
-        for chunk_id in chunks_to_search:
-            try:
-                close_boids += boid_dict[tuple(chunk_id)]
-            except KeyError:
-                continue
+        for x in range(2):
+            for y in range(2):
+                coord = (x + floor(self_coord_chunk[0] + offset_x),
+                         y + floor(self_coord_chunk[1]) + offset_y)
+                try:
+                    close_boids += boid_dict[coord]
+                except KeyError:
+                    continue
 
         return self.get_entities_within_distance(close_boids, distance, should_get_same_species)
 

@@ -49,6 +49,8 @@ class World:
 
         chunk_size = 2 * Boid.view_dist
 
+        # TODO: Chunks for all entities, not just Boids
+
         while True:
             frame_start_time = time()
             self.process_events()
