@@ -1,4 +1,4 @@
-from math import sqrt, sin, cos, pi
+from math import sqrt, sin, cos, pi, floor
 import pygame
 import random
 
@@ -178,56 +178,47 @@ class Boid(Entity):
     def get_boids_within_distance(self, boid_dict, distance, should_get_same_species=None):
         """Gets all boids near the Boid"""
 
-        self_coord_chunk = (self.x / Boid.view_dist,
-                            self.y / Boid.view_dist)
+        self_coord_chunk = (self.x / (2 * Boid.view_dist),
+                            self.y / (2 * Boid.view_dist))
 
-        chunks_to_search = []
+        chunks_to_search = [[0, 0],
+                            [0, 0],
+                            [0, 0],
+                            [0, 0]
+                            ]
 
-        start_chunk = (round(self_coord_chunk[0]),
-                       round(self_coord_chunk[1]))
+        start_chunk = [floor(self_coord_chunk[0]),
+                       floor(self_coord_chunk[1])]
         chunks_to_search.append(start_chunk)
 
-        # This is a fucking mess
-        #   Basically, depending on which part of the chunk the boid is in, check adjacent chunks as well
-        #   This reduces search space from 9 chunks to 4
-        if self.x % 1 < .5:
-            # left of chunk
-            chunks_to_search.append((start_chunk[0] - 1,
-                                     start_chunk[1]))
-            if self.y % 1 < .5:
-                # top of chunk
-                chunks_to_search.append((start_chunk[0] - 1,
-                                         start_chunk[1] - 1))
-                chunks_to_search.append((start_chunk[0],
-                                         start_chunk[1] - 1))
-            else:
-                # bottom of chunk
-                chunks_to_search.append((start_chunk[0] - 1,
-                                         start_chunk[1] + 1))
-                chunks_to_search.append((start_chunk[0],
-                                         start_chunk[1] + 1))
+        chunks_to_search[0] = start_chunk               # center chunk
+        chunks_to_search[1][1] = start_chunk[1]         # horizontal chunk on same y
+        chunks_to_search[2][0] = start_chunk[0]         # vertical chunk on same x
+                                                        # corner chunk could be anything
+                                                        # I really need a paragraph or image to explain this better
+
+        if self_coord_chunk[0] % 1 < 0.5:
+            # object is near left edge of chunk
+            chunks_to_search[1][0] = start_chunk[0] - 1
+            chunks_to_search[3][0] = start_chunk[0] - 1
         else:
-            # right of chunk
-            chunks_to_search.append((start_chunk[0] + 1,
-                                     start_chunk[1]))
-            if self.y % 1 < .5:
-                # top of chunk
-                chunks_to_search.append((start_chunk[0] + 1,
-                                         start_chunk[1] - 1))
-                chunks_to_search.append((start_chunk[0],
-                                         start_chunk[1] - 1))
-            else:
-                # bottom of chunk
-                chunks_to_search.append((start_chunk[0] -+1,
-                                         start_chunk[1] + 1))
-                chunks_to_search.append((start_chunk[0],
-                                         start_chunk[1] + 1))
+            # object is near right edge of chunk
+            chunks_to_search[1][0] = start_chunk[0] + 1
+            chunks_to_search[3][0] = start_chunk[0] + 1
+        if self_coord_chunk[1] % 1 < 0.5:
+            # object is near top edge of chunk
+            chunks_to_search[2][1] = start_chunk[1] - 1
+            chunks_to_search[3][1] = start_chunk[1] - 1
+        else:
+            # object is near bottom edge of chunk
+            chunks_to_search[2][1] = start_chunk[1] + 1
+            chunks_to_search[3][1] = start_chunk[1] + 1
 
         close_boids = []
 
         for chunk_id in chunks_to_search:
             try:
-                close_boids += boid_dict[chunk_id]
+                close_boids += boid_dict[tuple(chunk_id)]
             except KeyError:
                 continue
 

@@ -47,6 +47,8 @@ class World:
             self.entities.append(Entity(None, 320, i))      # Wall on the left
         self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
 
+        chunk_size = 2 * Boid.view_dist
+
         while True:
             frame_start_time = time()
             self.process_events()
@@ -56,20 +58,20 @@ class World:
             for i in range(1, round(config.world_size[0] / Boid.view_dist)):
                 pygame.draw.line(pygame.display.get_surface(),
                                  (0, 0, 0),
-                                 (i * Boid.view_dist, 0),
-                                 (i * Boid.view_dist, config.world_size[1]),
+                                 (i * chunk_size, 0),
+                                 (i * chunk_size, config.world_size[1]),
                                  1)
                 pygame.draw.line(pygame.display.get_surface(),
                                  (0, 0, 0),
-                                 (0, i * Boid.view_dist),
-                                 (config.world_size[0], i * Boid.view_dist),
+                                 (0, i * chunk_size),
+                                 (config.world_size[0], i * chunk_size),
                                  1)
 
             # Create dictionary of boids by location
             boid_dict = {}
             for boid in self.boids:
-                coord = (floor(boid.x / Boid.view_dist),
-                         floor(boid.y / Boid.view_dist))
+                coord = (floor(boid.x / chunk_size),
+                         floor(boid.y / chunk_size))
                 if coord in boid_dict:
                     boid_dict[coord].append(boid)
                 else:
