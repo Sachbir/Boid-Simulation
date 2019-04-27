@@ -14,7 +14,7 @@ class Entity:
 
         Entity.screen = pygame.display.get_surface()
 
-    def update(self):
+    def update_and_render(self):
         """Render a generic Entity image"""
 
         if self.species is None:
