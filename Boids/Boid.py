@@ -1,4 +1,4 @@
-from math import sqrt, sin, cos, pi
+from math import sqrt, sin, cos, pi, floor
 import pygame
 import random
 
@@ -13,7 +13,7 @@ class Boid(Entity):
     screen = None
     size = 9
 
-    view_dist = 150
+    view_dist = 75
     neighbour_dist_min = 25
     avoidance_dist = 50
 
@@ -112,9 +112,9 @@ class Boid(Entity):
         # Get all 'other' entities
         close_entities = self.get_entities_within_distance(predators, Boid.avoidance_dist)
         close_entities.extend(self.get_entities_within_distance(entities, Boid.avoidance_dist))
-        close_entities.extend(self.get_entities_within_distance(boids, Boid.avoidance_dist, False))
+        close_entities.extend(self.get_boids_within_distance(boids, Boid.avoidance_dist, False))
         if len(close_entities) == 0:   # If none, get Boids of same species
-            close_entities = self.get_entities_within_distance(boids, Boid.neighbour_dist_min, True)
+            close_entities = self.get_boids_within_distance(boids, Boid.neighbour_dist_min, True)
         if len(close_entities) == 0:
             return 0, 0
 
@@ -134,7 +134,7 @@ class Boid(Entity):
     def alignment(self, boids):
         """Boids should try to move in the same direction as their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
 
         directions = []
         for boid in close_boids:
@@ -150,7 +150,7 @@ class Boid(Entity):
     def cohesion(self, boids):
         """Boids should stay close to their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -170,6 +170,42 @@ class Boid(Entity):
         vector_to_center = Boid.get_unit_vector(vector_to_center)
 
         return vector_to_center
+
+    def get_boids_within_distance(self, boid_dict, distance, should_get_same_species=None):
+        """
+        Gets all boids near the Boid
+
+        Gets a dictionary of all boids within a given chunk (defined by its upper-left corner)
+        Checks the chunk the boid is in, plus some of the surrounding chunks
+        As chunks are defined by the view distance of a boid, boids cannot see more than 4 chunks at a time
+        The location of a boid within a chunk determines which other chunks a boid can see
+        """
+
+        close_boids = []
+
+        self_coord_chunk = (self.x / (2 * Boid.view_dist),
+                            self.y / (2 * Boid.view_dist))
+
+        # Assume boid is in the bottom-right corner of the chunk
+        #   if the boid is closer to the top or left, add a negative offset
+
+        offset_x = 0
+        offset_y = 0
+        if self_coord_chunk[0] % 1 < 0.5:
+            offset_x = -1
+        if self_coord_chunk[1] % 1 < 0.5:
+            offset_y = -1
+
+        for x in range(2):
+            for y in range(2):
+                coord = (x + floor(self_coord_chunk[0] + offset_x),
+                         y + floor(self_coord_chunk[1]) + offset_y)
+                try:
+                    close_boids += boid_dict[coord]
+                except KeyError:
+                    continue
+
+        return self.get_entities_within_distance(close_boids, distance, should_get_same_species)
 
     def get_entities_within_distance(self, entities, distance, should_get_same_species=None):
         """Gets all entities near the Boid"""
