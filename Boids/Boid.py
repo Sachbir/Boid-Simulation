@@ -66,8 +66,35 @@ class Boid(Entity):
                             color,
                             [coord_1, coord_2, coord_3, coord_4])
 
-    def calculate_new_direction(self, boids, entities, predators):
+    def calculate_new_direction(self, chunks_dict):
         """Determines which way the Boid should face given its surroundings"""
+
+        boids = []
+        predators = []
+        entities = []
+
+        self_coord_chunk = (self.x / (2 * Boid.view_dist),
+                            self.y / (2 * Boid.view_dist))
+
+        # Assume boid is in the bottom-right corner of the chunk
+        #   if the boid is closer to the top or left, add a negative offset
+
+        offset_x = 0
+        offset_y = 0
+        if self_coord_chunk[0] % 1 < 0.5:
+            offset_x = -1
+        if self_coord_chunk[1] % 1 < 0.5:
+            offset_y = -1
+
+        for x in range(2):
+            for y in range(2):
+                coord = (x + floor(self_coord_chunk[0] + offset_x),
+                         y + floor(self_coord_chunk[1]) + offset_y)
+                if coord in chunks_dict:
+                    chunk = chunks_dict[coord]
+                    boids.extend(chunk.get_entities("boids"))
+                    predators.extend(chunk.get_entities("predators"))
+                    entities.extend(chunk.get_entities("entities"))
 
         vectors = [self.direction]
 
@@ -112,9 +139,9 @@ class Boid(Entity):
         # Get all 'other' entities
         close_entities = self.get_entities_within_distance(predators, Boid.avoidance_dist)
         close_entities.extend(self.get_entities_within_distance(entities, Boid.avoidance_dist))
-        close_entities.extend(self.get_boids_within_distance(boids, Boid.avoidance_dist, False))
+        close_entities.extend(self.get_entities_within_distance(boids, Boid.avoidance_dist, False))
         if len(close_entities) == 0:   # If none, get Boids of same species
-            close_entities = self.get_boids_within_distance(boids, Boid.neighbour_dist_min, True)
+            close_entities = self.get_entities_within_distance(boids, Boid.neighbour_dist_min, True)
         if len(close_entities) == 0:
             return 0, 0
 
@@ -134,7 +161,7 @@ class Boid(Entity):
     def alignment(self, boids):
         """Boids should try to move in the same direction as their neighbours"""
 
-        close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
 
         directions = []
         for boid in close_boids:
@@ -150,7 +177,7 @@ class Boid(Entity):
     def cohesion(self, boids):
         """Boids should stay close to their neighbours"""
 
-        close_boids = self.get_boids_within_distance(boids, self.view_dist, True)
+        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0

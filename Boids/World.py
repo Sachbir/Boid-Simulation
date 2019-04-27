@@ -6,6 +6,7 @@ from time import time
 
 import config
 from Boid import Boid
+from Chunk import Chunk
 from Entity import Entity
 from GUI import GUI
 from Predator import Predator
@@ -57,35 +58,43 @@ class World:
             screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
             # Render chunk lines
-            for i in range(1, round(config.world_size[0] / Boid.view_dist)):
-                pygame.draw.line(pygame.display.get_surface(),
-                                 (0, 0, 0),
-                                 (i * chunk_size, 0),
-                                 (i * chunk_size, config.world_size[1]),
-                                 1)
-                pygame.draw.line(pygame.display.get_surface(),
-                                 (0, 0, 0),
-                                 (0, i * chunk_size),
-                                 (config.world_size[0], i * chunk_size),
-                                 1)
+            # for i in range(1, round(config.world_size[0] / Boid.view_dist)):
+            #     pygame.draw.line(pygame.display.get_surface(),
+            #                      (0, 0, 0),
+            #                      (i * chunk_size, 0),
+            #                      (i * chunk_size, config.world_size[1]),
+            #                      1)
+            #     pygame.draw.line(pygame.display.get_surface(),
+            #                      (0, 0, 0),
+            #                      (0, i * chunk_size),
+            #                      (config.world_size[0], i * chunk_size),
+            #                      1)
 
-            # Create dictionary of boids by location
-            boid_dict = {}
+            chunks_dict = {}
             for boid in self.boids:
                 coord = (floor(boid.x / chunk_size),
                          floor(boid.y / chunk_size))
-                if coord in boid_dict:
-                    boid_dict[coord].append(boid)
-                else:
-                    boid_dict[coord] = [boid]
+                if coord not in chunks_dict:
+                    chunks_dict[coord] = Chunk()
+                chunks_dict[coord].add_boid(boid)
+            for predator in self.predators:
+                coord = (floor(predator.x / chunk_size),
+                         floor(predator.y / chunk_size))
+                if coord not in chunks_dict:
+                    chunks_dict[coord] = Chunk()
+                chunks_dict[coord].add_predator(predator)
+            for entity in self.entities:
+                coord = (floor(entity.x / chunk_size),
+                         floor(entity.y / chunk_size))
+                if coord not in chunks_dict:
+                    chunks_dict[coord] = Chunk()
+                chunks_dict[coord].add_entity(entity)
 
             """ Update Entities """
             for predator in self.predators:
-                # predator.calculate_new_direction(self.boids, self.entities, self.predators)
-                predator.calculate_new_direction(boid_dict, self.entities, self.predators)
+                predator.calculate_new_direction(chunks_dict)
             for boid in self.boids:
-                # boid.calculate_new_direction(self.boids, self.entities, self.predators)
-                boid.calculate_new_direction(boid_dict, self.entities, self.predators)
+                boid.calculate_new_direction(chunks_dict)
 
             """ Update Display """
             for predator in self.predators:
