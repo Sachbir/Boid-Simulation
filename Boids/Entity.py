@@ -22,7 +22,8 @@ class Entity:
         else:
             color = self.species.value
 
-        pygame.draw.circle(Entity.screen,
-                           color,
-                           (round(self.x), round(self.y)),
-                           self.__class__.size)
+        rect = pygame.Rect(self.x - Entity.size, self.y - Entity.size,
+                           2 * Entity.size, 2 * Entity.size)
+        pygame.draw.rect(pygame.display.get_surface(),
+                         color,
+                         rect)

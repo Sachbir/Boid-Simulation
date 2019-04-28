@@ -28,10 +28,16 @@ class GUI:
                          gui_background)
 
         self.add_label("UPS: " + str(last_measured_UPS))
-        self.add_label("(Space) Pause")
+        if config.paused:
+            self.add_label("(Space) Resume")
+        else:
+            self.add_label("(Space) Pause")
         self.add_label("(R) Restart")
-        self.add_label("(S) Species: " + str(config.num_of_species_to_display))
-        self.add_label("(P) Predator Vision")
+        self.add_label("(M) Mode: " + config.modes[config.mode])
+        if config.debug_mode:
+            self.add_label("(D) Debug: On")
+        else:
+            self.add_label("(D) Debug: Off")
 
         self.display_coordinates = GUI.GUI_start_coordinates    # Reset the coordinate for the next cycle
 

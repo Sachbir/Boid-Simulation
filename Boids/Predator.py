@@ -2,13 +2,13 @@ import pygame
 from math import sqrt
 
 from Boid import Boid
+import config
 
 
 class Predator(Boid):
     """A type of Boid that hunts and kills other Boids"""
 
     size = 12
-    render_view_range = False
 
     eat_range = 7
 
@@ -31,7 +31,7 @@ class Predator(Boid):
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
                                          2 * Predator.eat_range, 2 * Predator.eat_range)    # range in all directions
 
-        if Predator.render_view_range:
+        if config.debug_mode:
             pygame.draw.circle(pygame.display.get_surface(),
                                (255, 0, 0),
                                (round(self.x), round(self.y)),
@@ -86,7 +86,7 @@ class Predator(Boid):
         if closest_boid is None:
             return 0, 0
 
-        if Predator.render_view_range:
+        if config.debug_mode:
             pygame.draw.line(pygame.display.get_surface(),
                              (255, 0, 0),
                              (round(self.x), round(self.y)),

@@ -47,7 +47,7 @@ class World:
         self.spawn_boids()
         self.predators.append(Predator())
 
-        for i in range(240, 480, 10):
+        for i in range(240, 480, 20):
             self.entities.append(Entity(None, 320, i))      # Wall on the left
         self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
 
@@ -56,24 +56,28 @@ class World:
         while True:
             frame_start_time = time()
             self.process_events()
-            screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
-            chunks_dict = self.sort_chunk_data()
+            if not config.paused:
+                screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
-            """ Update Entities """
-            for predator in self.predators:
-                predator.calculate_new_direction(chunks_dict)
-            for boid in self.boids:
-                boid.calculate_new_direction(chunks_dict)
+                chunks_dict = self.sort_chunk_data()
 
-            """ Update Display """
-            World.render_chunk_lines(World.chunk_size)
-            for predator in self.predators:
-                predator.update_and_render()
-            for boid in self.boids:
-                boid.update_and_render()
-            for obstacle in self.entities:
-                obstacle.update_and_render()
+                """ Update Entities """
+                for predator in self.predators:
+                    predator.calculate_new_direction(chunks_dict)
+                for boid in self.boids:
+                    boid.calculate_new_direction(chunks_dict)
+
+                """ Update Display """
+                if config.debug_mode:
+                    World.render_chunk_lines(World.chunk_size)
+                for predator in self.predators:
+                    predator.update_and_render()
+                for boid in self.boids:
+                    boid.update_and_render()
+                for obstacle in self.entities:
+                    obstacle.update_and_render()
+
             self.GUI.render(self.UPS_to_display)
             pygame.display.flip()
 
@@ -102,19 +106,21 @@ class World:
                 sys.exit(0)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:     # Pause
-                    if config.UPS_max == 1:
-                        config.UPS_max = 240
-                    else:
-                        config.UPS_max = 1
+                    config.paused = not config.paused
                 if event.key == pygame.K_r:         # Restart
                     self.spawn_boids()
-                if event.key == pygame.K_p:         # Display Predator View Range
-                    Predator.render_view_range = not Predator.render_view_range
-                if event.key == pygame.K_s:         # Cycle Species Count
-                    config.num_of_species_to_display += 1
-                    # noinspection PyTypeChecker
-                    if config.num_of_species_to_display > len(Species):
+                if event.key == pygame.K_d:         # Display Predator View Range
+                    config.debug_mode = not config.debug_mode
+                if event.key == pygame.K_m:         # Change Mode
+                    config.mode += 1
+                    config.mode %= len(config.modes)
+                    # Mode toggle
+                    if config.mode == 0:
+                        config.num_of_species_to_display = 2
+                        config.flock_colouring = False
+                    elif config.mode == 1:
                         config.num_of_species_to_display = 1
+                        config.flock_colouring = True
                     self.spawn_boids()
 
     def measure_UPS(self, start_time):
