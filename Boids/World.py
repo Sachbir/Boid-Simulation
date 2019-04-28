@@ -47,7 +47,7 @@ class World:
         self.spawn_boids()
         self.predators.append(Predator())
 
-        for i in range(240, 480, 10):
+        for i in range(240, 480, 20):
             self.entities.append(Entity(None, 320, i))      # Wall on the left
         self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
 
@@ -116,6 +116,8 @@ class World:
                     if config.num_of_species_to_display > len(Species):
                         config.num_of_species_to_display = 1
                     self.spawn_boids()
+                if event.key == pygame.K_c:
+                    config.flock_colouring = not config.flock_colouring
 
     def measure_UPS(self, start_time):
         """Takes the beginning and end time of the cycle to determine how fast the system is actually operating at"""

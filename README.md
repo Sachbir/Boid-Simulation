@@ -15,5 +15,6 @@ This is my recreation of Boids, the artificial life emulator by Craig Reynolds. 
 - Obstacles: boids avoid all objects, not just other boids
 - Species: species form their own flocks, which interact and avoid one another
 - Predators: special boids that hunt and kill other boids
+- Flock Colouring: flocks take on distinct colouring
 
 My goal was to add new features without adding too much complexity, and for the most part, I think I succeeded. The behaviours we see are emergent, and honestly, it's pretty fun to just watch them go. 
