@@ -82,11 +82,14 @@ class Boid(Entity):
             close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
             self.set_color(close_boids)
 
-            vectors.append(self.alignment(close_boids))
-            vectors.append(self.cohesion(boids))
-
-        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
-        # self.set_color(close_boids)
+            if str(self.__class__) == "<class 'Predator.Predator'>":
+                # This is probably a bad way to test that
+                #   isInstance can't differentiate Predator from its superclass (Boid)
+                # Predators don't care about the species of boids they observe, so they sort boids separately
+                vectors.append(self.cohesion(boids))
+            else:
+                vectors.append(self.alignment(close_boids))
+                vectors.append(self.cohesion(close_boids))
 
         x = sum(vectors[i][0] for i in range(len(vectors)))
         y = sum(vectors[i][1] for i in range(len(vectors)))
@@ -156,10 +159,10 @@ class Boid(Entity):
 
         return average_direction
 
-    def cohesion(self, boids):
+    def cohesion(self, close_boids):
         """Boids should stay close to their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -185,8 +188,6 @@ class Boid(Entity):
 
         close_entities = []
         for entity in entities:
-            # if entity == self:
-            #     continue    # Ignore self
             if should_get_same_species is not None:
                 if should_get_same_species and self.species != entity.species:
                     continue    # If we want similar species, ignore the dissimilar
