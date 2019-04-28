@@ -24,14 +24,11 @@ class Boid(Entity):
 
         super().__init__(species)
 
-        rand_color = random.randrange(0, 3)
-        if rand_color == 0:
-            self.default_color = (40, 40, 200)
-        elif rand_color == 1:
-            self.default_color = (40, 200, 40)
-        else:
-            self.default_color = (200, 40, 40)
+        self.default_color = (random.randrange(40, 240),
+                              random.randrange(40, 240),
+                              random.randrange(40, 240))
 
+        self.color = None
         self.set_color()
         self.speed = Boid.speed
         self.direction = None
@@ -83,10 +80,13 @@ class Boid(Entity):
             vectors.append(avoidance)
         else:
             close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
-            self.set_color(boids)
+            self.set_color(close_boids)
 
             vectors.append(self.alignment(close_boids))
-            vectors.append(self.cohesion(close_boids))
+            vectors.append(self.cohesion(boids))
+
+        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        # self.set_color(close_boids)
 
         x = sum(vectors[i][0] for i in range(len(vectors)))
         y = sum(vectors[i][1] for i in range(len(vectors)))
@@ -159,18 +159,20 @@ class Boid(Entity):
     def cohesion(self, boids):
         """Boids should stay close to their neighbours"""
 
-        if len(boids) == 0:
+        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+
+        if len(close_boids) == 0:
             return 0, 0
 
         avg_x = 0
         avg_y = 0
 
-        for boid in boids:
+        for boid in close_boids:
             avg_x += boid.x
             avg_y += boid.y
 
-        avg_x /= len(boids)
-        avg_y /= len(boids)
+        avg_x /= len(close_boids)
+        avg_y /= len(close_boids)
 
         vector_to_center = (avg_x - self.x,
                             avg_y - self.y)
@@ -237,10 +239,11 @@ class Boid(Entity):
 
     def set_color(self, boids=None):
 
+        if self.species is None:
+            self.color = 0, 0, 0
+            return
+
         if not config.flock_colouring:
-            if self.species is None:
-                self.color = 0, 0, 0
-                return
             self.color = self.species.value
             return
 
@@ -251,10 +254,10 @@ class Boid(Entity):
                 target_color = boids[0].color
             if self.color != target_color:
                 new_color = [0, 0, 0]
-                for i in new_color:
+                for i in range(len(new_color)):
                     if self.color[i] < target_color[i]:
                         new_color[i] = self.color[i] + 4
-                    elif self.color[i] > target_color[i]:
+                    else:
                         new_color[i] = self.color[i] - 4
                 target_color = new_color
             self.color = target_color
