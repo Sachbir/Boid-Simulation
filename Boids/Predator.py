@@ -21,11 +21,11 @@ class Predator(Boid):
         self.speed = 1
         self.collision_box = None
 
-    def update(self):
+    def update_and_render(self):
         """Update Predator's location, and renders it as appropriate
         Also renders its view distance if appropriate"""
 
-        super().update()
+        super().update_and_render()
         if self.speed < Predator.max_speed:
             self.speed += 0.001
         self.collision_box = pygame.Rect(self.x - Predator.eat_range, self.y - Predator.eat_range,
@@ -70,7 +70,7 @@ class Predator(Boid):
         Extension of cohesion, as hunting is akin to the cohesion of predator and prey
         Cannot combine with Boid.cohesion because that looks for multiple Boids; this finds only the closest"""
 
-        close_boids = self.get_boids_within_distance(boids, self.view_dist)
+        close_boids = self.get_entities_within_distance(boids, self.view_dist)
 
         if len(close_boids) == 0:
             return 0, 0

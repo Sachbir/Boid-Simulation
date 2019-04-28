@@ -6,10 +6,12 @@ from time import time
 
 import config
 from Boid import Boid
+from Chunk import Chunk
 from Entity import Entity
 from GUI import GUI
 from Predator import Predator
 from Species import Species
+
 
 pygame.init()
 # set_repeat doesn't want parameters, but requires them on Windows to function
@@ -24,6 +26,8 @@ pygame.display.set_icon(icon)
 # noinspection PyPep8Naming
 class World:
     """Contains and acts upon the simulation"""
+
+    chunk_size = 2 * Boid.view_dist
 
     def __init__(self):
 
@@ -47,8 +51,6 @@ class World:
             self.entities.append(Entity(None, 320, i))      # Wall on the left
         self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
 
-        chunk_size = 2 * Boid.view_dist
-
         # TODO: Chunks for all entities, not just Boids
 
         while True:
@@ -56,44 +58,22 @@ class World:
             self.process_events()
             screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
 
-            # Render chunk lines
-            for i in range(1, round(config.world_size[0] / Boid.view_dist)):
-                pygame.draw.line(pygame.display.get_surface(),
-                                 (0, 0, 0),
-                                 (i * chunk_size, 0),
-                                 (i * chunk_size, config.world_size[1]),
-                                 1)
-                pygame.draw.line(pygame.display.get_surface(),
-                                 (0, 0, 0),
-                                 (0, i * chunk_size),
-                                 (config.world_size[0], i * chunk_size),
-                                 1)
-
-            # Create dictionary of boids by location
-            boid_dict = {}
-            for boid in self.boids:
-                coord = (floor(boid.x / chunk_size),
-                         floor(boid.y / chunk_size))
-                if coord in boid_dict:
-                    boid_dict[coord].append(boid)
-                else:
-                    boid_dict[coord] = [boid]
+            chunks_dict = self.sort_chunk_data()
 
             """ Update Entities """
             for predator in self.predators:
-                # predator.calculate_new_direction(self.boids, self.entities, self.predators)
-                predator.calculate_new_direction(boid_dict, self.entities, self.predators)
+                predator.calculate_new_direction(chunks_dict)
             for boid in self.boids:
-                # boid.calculate_new_direction(self.boids, self.entities, self.predators)
-                boid.calculate_new_direction(boid_dict, self.entities, self.predators)
+                boid.calculate_new_direction(chunks_dict)
 
             """ Update Display """
+            World.render_chunk_lines(World.chunk_size)
             for predator in self.predators:
-                predator.update()
+                predator.update_and_render()
             for boid in self.boids:
-                boid.update()
+                boid.update_and_render()
             for obstacle in self.entities:
-                obstacle.update()
+                obstacle.update_and_render()
             self.GUI.render(self.UPS_to_display)
             pygame.display.flip()
 
@@ -155,6 +135,46 @@ class World:
             self.UPS_to_display = round(config.UPS_measured / config.frame_counter)
             config.UPS_measured = 0
             config.frame_counter = 0
+
+    def sort_chunk_data(self):
+
+        chunks_dict = {}
+
+        for boid in self.boids:
+            coord = (floor(boid.x / World.chunk_size),
+                     floor(boid.y / World.chunk_size))
+            if coord not in chunks_dict:
+                chunks_dict[coord] = Chunk()
+            chunks_dict[coord].add_boid(boid)
+        for predator in self.predators:
+            coord = (floor(predator.x / World.chunk_size),
+                     floor(predator.y / World.chunk_size))
+            if coord not in chunks_dict:
+                chunks_dict[coord] = Chunk()
+            chunks_dict[coord].add_predator(predator)
+        for entity in self.entities:
+            coord = (floor(entity.x / World.chunk_size),
+                     floor(entity.y / World.chunk_size))
+            if coord not in chunks_dict:
+                chunks_dict[coord] = Chunk()
+            chunks_dict[coord].add_entity(entity)
+
+        return chunks_dict
+
+    @staticmethod
+    def render_chunk_lines(chunk_size):
+
+        for i in range(1, round(config.world_size[0] / Boid.view_dist)):
+            pygame.draw.line(pygame.display.get_surface(),
+                             (0, 0, 0),
+                             (i * chunk_size, 0),
+                             (i * chunk_size, config.world_size[1]),
+                             1)
+            pygame.draw.line(pygame.display.get_surface(),
+                             (0, 0, 0),
+                             (0, i * chunk_size),
+                             (config.world_size[0], i * chunk_size),
+                             1)
 
 
 world = World()
