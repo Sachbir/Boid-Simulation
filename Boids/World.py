@@ -122,6 +122,8 @@ class World:
                         config.num_of_species_to_display = 1
                         config.flock_colouring = True
                     self.spawn_boids()
+                if event.key == pygame.K_c:
+                    config.flock_colouring = not config.flock_colouring
 
     def measure_UPS(self, start_time):
         """Takes the beginning and end time of the cycle to determine how fast the system is actually operating at"""

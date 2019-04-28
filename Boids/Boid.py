@@ -24,6 +24,12 @@ class Boid(Entity):
 
         super().__init__(species)
 
+        self.default_color = (random.randrange(40, 240),
+                              random.randrange(40, 240),
+                              random.randrange(40, 240))
+
+        self.color = None
+        self.set_color()
         self.speed = Boid.speed
         self.direction = None
 
@@ -58,13 +64,8 @@ class Boid(Entity):
         coord_4 = (round(self.x + size * coord_4[0]),
                    round(self.y + size * coord_4[1]))
 
-        if self.species is None:
-            color = 0, 0, 0
-        else:
-            color = self.species.value
-
         pygame.draw.polygon(pygame.display.get_surface(),
-                            color,
+                            self.color,
                             [coord_1, coord_2, coord_3, coord_4])
 
     def calculate_new_direction(self, chunks_dict):
@@ -78,8 +79,17 @@ class Boid(Entity):
         if avoidance != (0, 0):    # If there's an avoidance value, we only care about that
             vectors.append(avoidance)
         else:
-            vectors.append(self.alignment(boids))
-            vectors.append(self.cohesion(boids))
+            close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+            self.set_color(close_boids)
+
+            if str(self.__class__) == "<class 'Predator.Predator'>":
+                # This is probably a bad way to test that
+                #   isInstance can't differentiate Predator from its superclass (Boid)
+                # Predators don't care about the species of boids they observe, so they sort boids separately
+                vectors.append(self.cohesion(boids))
+            else:
+                vectors.append(self.alignment(close_boids))
+                vectors.append(self.cohesion(close_boids))
 
         x = sum(vectors[i][0] for i in range(len(vectors)))
         y = sum(vectors[i][1] for i in range(len(vectors)))
@@ -134,26 +144,25 @@ class Boid(Entity):
 
         return vector_from_center
 
-    def alignment(self, boids):
+    @staticmethod
+    def alignment(boids):
         """Boids should try to move in the same direction as their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
-
         directions = []
-        for boid in close_boids:
+        for boid in boids:
             directions.append(boid.direction)
 
-        total_direction = (sum(boid.direction[0] for boid in close_boids),
-                           sum(boid.direction[1] for boid in close_boids))
+        total_direction = (sum(boid.direction[0] for boid in boids),
+                           sum(boid.direction[1] for boid in boids))
 
         average_direction = Boid.get_unit_vector(total_direction)
 
         return average_direction
 
-    def cohesion(self, boids):
+    def cohesion(self, close_boids):
         """Boids should stay close to their neighbours"""
 
-        close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
+        # close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
 
         if len(close_boids) == 0:
             return 0, 0
@@ -179,8 +188,6 @@ class Boid(Entity):
 
         close_entities = []
         for entity in entities:
-            if entity == self:
-                continue    # Ignore self
             if should_get_same_species is not None:
                 if should_get_same_species and self.species != entity.species:
                     continue    # If we want similar species, ignore the dissimilar
@@ -230,6 +237,33 @@ class Boid(Entity):
                     entities.extend(chunk.get_entities("entities"))
 
         return boids, predators, entities
+
+    def set_color(self, boids=None):
+
+        if self.species is None:
+            self.color = 0, 0, 0
+            return
+
+        if not config.flock_colouring:
+            self.color = self.species.value
+            return
+
+        if config.flock_colouring and boids is not None and len(boids) > 0:
+            if self == boids[0]:
+                target_color = self.default_color
+            else:
+                target_color = boids[0].color
+            if self.color != target_color:
+                new_color = [0, 0, 0]
+                for i in range(len(new_color)):
+                    if self.color[i] < target_color[i]:
+                        new_color[i] = self.color[i] + 4
+                    else:
+                        new_color[i] = self.color[i] - 4
+                target_color = new_color
+            self.color = target_color
+        else:
+            self.color = self.default_color
 
     @staticmethod
     def get_unit_vector(vector):
