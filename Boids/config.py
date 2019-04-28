@@ -18,3 +18,4 @@ frame_counter = 0
 
 total_boid_cap = 72
 num_of_species_to_display = 2
+flock_colouring = False
