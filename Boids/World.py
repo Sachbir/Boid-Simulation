@@ -51,6 +51,14 @@ class World:
             self.entities.append(Entity(None, 320, i))      # Wall on the left
         self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
 
+        if config.world_border:
+            for y in range(0, config.world_size[1]+20, 20):
+                self.entities.append(Entity(None, 10,                       y))      # Wall on the left
+                self.entities.append(Entity(None, config.world_size[0]-10,  y))      # Wall on the right
+            for x in range(0, config.world_size[0]+20, 20):
+                self.entities.append(Entity(None, x, 10))                           # Wall on the top
+                self.entities.append(Entity(None, x, config.world_size[1]-10))      # Wall on the bottom
+
         # TODO: Chunks for all entities, not just Boids
 
         while True:
