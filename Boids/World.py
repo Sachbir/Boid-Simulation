@@ -17,12 +17,7 @@ pygame.init()
 # set_repeat doesn't want parameters, but requires them on Windows to function
 # noinspection PyArgumentList
 pygame.key.set_repeat(200, 100)
-
-if config.use_screen_size:
-    infoObject = pygame.display.Info()
-    screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h))
-else:
-    screen = pygame.display.set_mode(config.world_size)
+screen = pygame.display.set_mode(config.world_size)
 pygame.display.set_caption("Boid Simulation")
 icon = pygame.image.load("icon.png")
 pygame.display.set_icon(icon)
