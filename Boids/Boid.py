@@ -20,6 +20,8 @@ class Boid(Entity):
     speed = 1
     turn_factor = 20
 
+    color_stability = 3
+
     def __init__(self, species=Species.Cardinal):
 
         super().__init__(species)
@@ -257,9 +259,9 @@ class Boid(Entity):
                 new_color = [0, 0, 0]
                 for i in range(len(new_color)):
                     if self.color[i] < target_color[i]:
-                        new_color[i] = self.color[i] + 4
+                        new_color[i] = self.color[i] + Boid.color_stability
                     else:
-                        new_color[i] = self.color[i] - 4
+                        new_color[i] = self.color[i] - Boid.color_stability
                 target_color = new_color
             self.color = target_color
         else:
