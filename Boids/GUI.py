@@ -12,7 +12,7 @@ text = pygame.freetype.SysFont(system_font, 15)
 class GUI:
     """Rendering instructions and information for the user"""
 
-    GUI_start_coordinates = 10, 10
+    GUI_start_coordinates = 30, 30
     text_spacing_vertical = 22
 
     def __init__(self):
@@ -24,9 +24,9 @@ class GUI:
 
         num_lines = 5
 
-        gui_background = pygame.Rect(0, 0, 150, GUI.text_spacing_vertical + num_lines * 24)
+        gui_background = pygame.Rect(20, 20, 150, GUI.text_spacing_vertical + num_lines * 24)
         pygame.draw.rect(pygame.display.get_surface(),
-                         (170, 170, 170),
+                         (62, 62, 66),
                          gui_background)
 
         self.add_label("UPS: " + str(last_measured_UPS))
@@ -49,6 +49,7 @@ class GUI:
 
         text.render_to(pygame.display.get_surface(),
                        self.display_coordinates,
-                       words)
+                       words,
+                       (200, 200, 200))
 
         self.display_coordinates = self.display_coordinates[0], self.display_coordinates[1] + GUI.text_spacing_vertical

@@ -58,6 +58,11 @@ class World:
             for x in range(0, config.world_size[0]+20, 20):
                 self.entities.append(Entity(None, x, 10))                           # Wall on the top
                 self.entities.append(Entity(None, x, config.world_size[1]-10))      # Wall on the bottom
+            # Shitty little box for the GUI (not done well but whatever)
+            for y in range(0, 160, 20):
+                self.entities.append(Entity(None, 160, y))
+            for x in range(0, 180, 20):
+                self.entities.append(Entity(None, x, 150))
 
         # TODO: Chunks for all entities, not just Boids
 
@@ -66,7 +71,8 @@ class World:
             self.process_events()
 
             if not config.paused:
-                screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
+                # screen.fill((220, 225, 230))  # Slightly blue       Does not go with Display Update because of predator view
+                screen.fill((30, 30, 30))  # Dark mode
 
                 chunks_dict = self.sort_chunk_data()
 
