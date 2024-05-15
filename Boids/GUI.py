@@ -22,7 +22,9 @@ class GUI:
     # noinspection PyPep8Naming
     def render(self, last_measured_UPS):
 
-        gui_background = pygame.Rect(0, 0, 150, 120)
+        num_lines = 5
+
+        gui_background = pygame.Rect(0, 0, 150, GUI.text_spacing_vertical + num_lines * 24)
         pygame.draw.rect(pygame.display.get_surface(),
                          (170, 170, 170),
                          gui_background)
@@ -38,6 +40,7 @@ class GUI:
             self.add_label("(D) Debug: On")
         else:
             self.add_label("(D) Debug: Off")
+        self.add_label("(Q) Quit")
 
         self.display_coordinates = GUI.GUI_start_coordinates    # Reset the coordinate for the next cycle
 
