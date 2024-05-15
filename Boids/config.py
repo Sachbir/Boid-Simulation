@@ -6,6 +6,8 @@
 # world_size = 1280, 768
 world_size = 2560, 1440
 
+use_screen_size = True
+
 world_border = True
 
 
@@ -19,7 +21,7 @@ frame_counter = 0
 
 """ Boid Settings """
 
-total_boid_cap = 100
+total_boid_cap = 200
 num_of_species_to_display = 1
 flock_colouring = True
 
