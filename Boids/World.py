@@ -1,3 +1,4 @@
+import random
 from math import floor
 import pygame
 import pygame.freetype
@@ -151,6 +152,20 @@ class World:
                     self.spawn_boids(config.num_boids)
                 if event.key == pygame.K_c:
                     config.flock_colouring = not config.flock_colouring
+                if event.key == pygame.K_w:
+                    config.world_border = not config.world_border
+                    if config.world_border:
+                        self.respawn_walls()
+                    else:
+                        # self.entities = [Entity(None, config.world_size[0] / 2, config.world_size[1] / 2)]
+                        self.entities = []
+                if event.key == pygame.K_UP:
+                    config.num_boids += 10
+                    self.spawn_boids(10)
+                if event.key == pygame.K_DOWN:
+                    config.num_boids -= 10
+                    random.shuffle(self.boids)
+                    self.boids = self.boids[:-10]
 
     def measure_UPS(self, start_time):
         """Takes the beginning and end time of the cycle to determine how fast the system is actually operating at"""
