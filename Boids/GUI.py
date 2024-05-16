@@ -18,33 +18,45 @@ class GUI:
     def __init__(self):
 
         self.display_coordinates = GUI.GUI_start_coordinates
+        self.labels = []
 
     # noinspection PyPep8Naming
     def render(self, last_measured_UPS):
 
-        num_lines = 5
+        self.labels = []
 
-        gui_background = pygame.Rect(20, 20, 150, GUI.text_spacing_vertical + num_lines * 24)
+        self.labels.append("UPS: " + str(last_measured_UPS))
+        self.labels.append("Boid Count: " + str(config.num_boids))
+        self.labels.append("")
+        # self.labels.append("UPS: " + str(last_measured_UPS))
+        if config.paused:
+            self.labels.append("(Space) Resume")
+        else:
+            self.labels.append("(Space) Pause")
+        self.labels.append("(R) Restart")
+        self.labels.append("(M) Mode: " + config.modes[config.mode])
+        if config.debug_mode:
+            self.labels.append("(D) Debug: On")
+        else:
+            self.labels.append("(D) Debug: Off")
+        self.labels.append("(W) Walls")
+        self.labels.append("(Q) Quit")
+
+        num_lines = len(self.labels) - 1
+
+        config.gui_height = GUI.text_spacing_vertical + num_lines * 24
+
+        gui_background = pygame.Rect(20, 20, 150, config.gui_height)
         pygame.draw.rect(pygame.display.get_surface(),
                          (62, 62, 66),
                          gui_background)
 
-        self.add_label("UPS: " + str(last_measured_UPS))
-        if config.paused:
-            self.add_label("(Space) Resume")
-        else:
-            self.add_label("(Space) Pause")
-        self.add_label("(R) Restart")
-        self.add_label("(M) Mode: " + config.modes[config.mode])
-        if config.debug_mode:
-            self.add_label("(D) Debug: On")
-        else:
-            self.add_label("(D) Debug: Off")
-        self.add_label("(Q) Quit")
+        for label in self.labels:
+            self.render_label(label)
 
         self.display_coordinates = GUI.GUI_start_coordinates    # Reset the coordinate for the next cycle
 
-    def add_label(self, words):
+    def render_label(self, words):
         """Decides where the next string will appear in the menu"""
 
         text.render_to(pygame.display.get_surface(),

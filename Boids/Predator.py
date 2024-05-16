@@ -38,7 +38,7 @@ class Predator(Boid):
                                self.view_dist,
                                1)
 
-    def avoidance(self, boids, entities, predators):
+    def avoidance_vector(self, boids, entities, predators):
         """Predators should maintain distance between themselves and other entities
         Could potentially combine this with Boid.avoidance, but you'd need to somehow account for Predators not avoiding
         their prey"""

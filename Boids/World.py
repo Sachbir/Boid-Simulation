@@ -47,22 +47,9 @@ class World:
         self.spawn_boids()
         self.predators.append(Predator())
 
-        for i in range(240, 480, 20):
-            self.entities.append(Entity(None, 320, i))      # Wall on the left
-        self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
-
-        if config.world_border:
-            for y in range(0, config.world_size[1]+20, 20):
-                self.entities.append(Entity(None, 10,                       y))      # Wall on the left
-                self.entities.append(Entity(None, config.world_size[0]-10,  y))      # Wall on the right
-            for x in range(0, config.world_size[0]+20, 20):
-                self.entities.append(Entity(None, x, 10))                           # Wall on the top
-                self.entities.append(Entity(None, x, config.world_size[1]-10))      # Wall on the bottom
-            # Shitty little box for the GUI (not done well but whatever)
-            for y in range(0, 160, 20):
-                self.entities.append(Entity(None, 160, y))
-            for x in range(0, 180, 20):
-                self.entities.append(Entity(None, x, 150))
+        self.spawn_boids(config.num_boids)
+        # self.predators.append(Predator())
+        self.respawn_walls()
 
         # TODO: Chunks for all entities, not just Boids
 
@@ -98,18 +85,41 @@ class World:
             self.measure_UPS(frame_start_time)
             self.clock.tick(config.UPS_max)
 
-    def spawn_boids(self):
+    def spawn_boids(self, count):
         """Generate initial set of Boids based on system settings"""
 
         self.boids = []
 
         species_counter = 0
         for species in Species:
-            for i in range(int(config.total_boid_cap / config.num_of_species_to_display)):
+            for i in range(int(count / config.num_of_species_to_display)):
                 self.boids.append(Boid(species))
             species_counter += 1
             if species_counter == config.num_of_species_to_display:
                 break
+
+    def respawn_walls(self):
+
+        self.entities = []
+
+        # for i in range(240, 480, 20):
+        #     self.entities.append(Entity(None, 320, i))      # Wall on the left
+        # self.entities.append(Entity(None, 640, 360))        # Obstacle on the right
+
+        if config.world_border:
+            for y in range(0, config.world_size[1]+20, 20):
+                self.entities.append(Entity(None, 10,                       y))      # Wall on the left
+                self.entities.append(Entity(None, config.world_size[0]-10,  y))      # Wall on the right
+            for x in range(0, config.world_size[0]+20, 20):
+                self.entities.append(Entity(None, x, 10))                           # Wall on the top
+                self.entities.append(Entity(None, x, config.world_size[1]-10))      # Wall on the bottom
+            # Shitty little box for the GUI (not done well but whatever)
+            for y in range(0, config.gui_height+10, 20):
+                self.entities.append(Entity(None, 160, y))
+            for x in range(0, 180, 20):
+                self.entities.append(Entity(None, x, config.gui_height+10))
+
+        # self.entities.append(Entity(None, config.world_size[0]/2, config.world_size[1]/2))
 
     def process_events(self):
         """Checks for any and all events occurring during runtime"""
@@ -122,7 +132,9 @@ class World:
                 if event.key == pygame.K_SPACE:     # Pause
                     config.paused = not config.paused
                 if event.key == pygame.K_r:         # Restart
-                    self.spawn_boids()
+                    self.boids = []
+                    self.spawn_boids(config.num_boids)
+                    self.respawn_walls()
                 if event.key == pygame.K_d:         # Display Predator View Range
                     config.debug_mode = not config.debug_mode
                 if event.key == pygame.K_m:         # Change Mode
@@ -135,7 +147,8 @@ class World:
                     elif config.mode == 1:
                         config.num_of_species_to_display = 1
                         config.flock_colouring = True
-                    self.spawn_boids()
+                    self.boids = []
+                    self.spawn_boids(config.num_boids)
                 if event.key == pygame.K_c:
                     config.flock_colouring = not config.flock_colouring
 

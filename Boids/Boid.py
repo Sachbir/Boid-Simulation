@@ -77,9 +77,9 @@ class Boid(Entity):
 
         vectors = [self.direction]
 
-        avoidance = self.avoidance(boids, entities, predators)
-        if avoidance != (0, 0):    # If there's an avoidance value, we only care about that
-            vectors.append(avoidance)
+        avoidance_vector = self.avoidance_vector(boids, entities, predators)
+        if avoidance_vector != (0, 0):    # If there's an avoidance value, we only care about that
+            vectors.append(avoidance_vector)
         else:
             close_boids = self.get_entities_within_distance(boids, self.view_dist, True)
             self.set_color(close_boids)
@@ -118,7 +118,7 @@ class Boid(Entity):
 
         return sqrt(x_sq + y_sq)
 
-    def avoidance(self, boids, entities, predators):
+    def avoidance_vector(self, boids, entities, predators):
         """Boids should maintain distance between themselves and other entities"""
 
         avg_x = 0
